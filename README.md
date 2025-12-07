@@ -19,11 +19,43 @@ A TypeScript framework for managing Homebrew packages and macOS settings with de
 
 ## Installation
 
-### Quick Install (Recommended)
+### Quick Install (One Command)
 
-Run the installation script to install macType globally:
+The easiest way to install macType is with a single curl command:
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/FlorianElke/macType/main/bootstrap.sh | bash
+```
+
+This will:
+- Clone the repository to `~/.local/macType`
+- Install Xcode Command Line Tools (includes git)
+- Install Homebrew (if not already installed)
+- Install mas CLI for App Store management
+- Install nvm and Node.js 22
+- Install npm dependencies and build the project
+- Link the `mactype` command globally
+- Create the config directory at `~/.config/macType`
+- Copy example TypeScript config and dotfile templates
+- Set up TypeScript support with IntelliSense
+
+### Manual Installation
+
+If you prefer to clone the repository manually:
+
+```bash
+git clone https://github.com/FlorianElke/macType.git ~/.local/macType
+cd ~/.local/macType
+./init.sh
+```
+
+### Development Setup
+
+For development, clone to any directory and run:
+
+```bash
+git clone https://github.com/FlorianElke/macType.git
+cd macType
 ./install.sh
 ```
 
@@ -38,28 +70,30 @@ Then initialize your configuration:
 ./init.sh
 ```
 
-This will:
-- Install Homebrew (if not already installed)
-- Install nvm and Node.js 22
-- Create the config directory at `~/.config/macType`
-- Copy example TypeScript config and dotfile templates
-- Build the project
-- Link the package globally for TypeScript IntelliSense
-- Set up TypeScript support in your config directory
+**Note**: On a fresh macOS install, a dialog will appear to install Xcode Command Line Tools. Click "Install" and wait for it to complete.
 
 ### Manual Installation
 
 If you prefer to install manually:
 
 ```bash
-# Install and build
+# 1. Install Xcode Command Line Tools (if not already installed)
+xcode-select --install
+
+# 2. Install Homebrew (if not already installed)
+# Visit https://brew.sh for instructions
+
+# 3. Install mas CLI
+brew install mas
+
+# 4. Install and build macType
 npm install
 npm run build
 
-# Link globally
+# 5. Link globally
 npm link
 
-# Initialize config
+# 6. Initialize config directory
 ./init.sh
 ```
 

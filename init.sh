@@ -23,6 +23,28 @@ fi
 echo -e "${BLUE}Checking dependencies...${NC}"
 echo ""
 
+# Check and install Xcode Command Line Tools (required for git and Homebrew)
+echo -e "${BLUE}Checking Xcode Command Line Tools...${NC}"
+if ! xcode-select -p &> /dev/null; then
+    echo -e "${YELLOW}Xcode Command Line Tools not found. Installing...${NC}"
+    echo -e "${YELLOW}A dialog will appear. Please click 'Install' and wait for completion.${NC}"
+
+    # Trigger the installation
+    xcode-select --install
+
+    # Wait for installation to complete
+    echo -e "${YELLOW}Waiting for Xcode Command Line Tools installation to complete...${NC}"
+    until xcode-select -p &> /dev/null; do
+        sleep 5
+    done
+
+    echo -e "${GREEN}✓ Xcode Command Line Tools installed successfully${NC}"
+else
+    echo -e "${GREEN}✓ Xcode Command Line Tools are already installed${NC}"
+fi
+
+echo ""
+
 # Check and install Homebrew
 if ! command -v brew &> /dev/null; then
     echo -e "${YELLOW}Homebrew not found. Installing Homebrew...${NC}"
@@ -103,10 +125,13 @@ else
     echo -e "${GREEN}✓ Config directory already exists${NC}"
 fi
 
+# Determine script directory (works whether script is in repo or installed)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Copy example config if it doesn't exist
 if [ ! -f "$CONFIG_DIR/config.ts" ]; then
-    if [ -f "config.ts" ]; then
-        cp config.ts "$CONFIG_DIR/config.ts"
+    if [ -f "$SCRIPT_DIR/config.example.ts" ]; then
+        cp "$SCRIPT_DIR/config.example.ts" "$CONFIG_DIR/config.ts"
         echo -e "${GREEN}✓ Created TypeScript config file at $CONFIG_DIR/config.ts${NC}"
         echo -e "${YELLOW}  Please edit $CONFIG_DIR/config.ts with your desired configuration${NC}"
     fi
@@ -116,8 +141,8 @@ fi
 
 # Copy configs directory if it doesn't exist
 if [ ! -d "$CONFIG_DIR/configs" ]; then
-    if [ -d "configs" ]; then
-        cp -r configs "$CONFIG_DIR/"
+    if [ -d "$SCRIPT_DIR/configs" ]; then
+        cp -r "$SCRIPT_DIR/configs" "$CONFIG_DIR/"
         echo -e "${GREEN}✓ Created configs directory at $CONFIG_DIR/configs${NC}"
         echo -e "${YELLOW}  Add your dotfile configs in $CONFIG_DIR/configs/${NC}"
     fi
@@ -165,6 +190,7 @@ echo ""
 
 # Install npm dependencies
 echo -e "${BLUE}Installing npm dependencies...${NC}"
+cd "$SCRIPT_DIR"
 npm install
 echo -e "${GREEN}✓ Dependencies installed${NC}"
 
