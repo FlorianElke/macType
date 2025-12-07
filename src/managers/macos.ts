@@ -5,39 +5,39 @@ import { MacOSState, MacOSSetting, MacOSSettingDiff, ApplyResult } from '../type
 const DOMAIN_TO_PROCESS: Record<string, string> = {
   // Dock & Mission Control
   'com.apple.dock': 'Dock',
-  
+
   // Finder & Desktop
   'com.apple.finder': 'Finder',
-  
+
   // Menu Bar & System UI
   'com.apple.systemuiserver': 'SystemUIServer',
   'com.apple.menuextra.clock': 'SystemUIServer',
   'NSGlobalDomain': 'SystemUIServer',
-  
+
   // Screenshots
   'com.apple.screencapture': 'SystemUIServer',
-  
+
   // Safari
   'com.apple.Safari': 'Safari',
-  
+
   // Activity Monitor
   'com.apple.ActivityMonitor': 'Activity Monitor',
-  
+
   // TextEdit
   'com.apple.TextEdit': 'TextEdit',
-  
+
   // Messages
   'com.apple.MobileSMS': 'Messages',
-  
+
   // Simulator
   'com.apple.iphonesimulator': 'Simulator',
-  
+
   // Xcode
   'com.apple.dt.Xcode': 'Xcode',
-  
+
   // Time Machine
   'com.apple.TimeMachine': 'SystemUIServer',
-  
+
   // Trackpad (requires logout/login, but we track it anyway)
   'com.apple.AppleMultitouchTrackpad': 'SystemUIServer',
 };
@@ -152,13 +152,13 @@ export class MacOSManager {
 
     try {
       await runCommand(command);
-      
+
       // Track which process needs to be restarted
       const processToRestart = DOMAIN_TO_PROCESS[domain];
       if (processToRestart) {
         this.processesToRestart.add(processToRestart);
       }
-      
+
       return {
         success: true,
         message: `${action === 'add' ? 'Added' : 'Updated'} setting: ${domain} ${key} = ${desiredValue}`

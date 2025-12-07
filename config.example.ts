@@ -202,7 +202,7 @@ const config: Configuration = {
       //   domain: 'NSGlobalDomain',
       //   key: 'NSQuitAlwaysKeepsWindows',
       //   value: true,  // Restore windows when quitting and reopening apps
-```
+      ```
       //   type: 'bool',
       // },
 

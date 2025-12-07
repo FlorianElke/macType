@@ -10,31 +10,31 @@
 export interface DockSettings {
   /** Dock position: 'left', 'bottom', 'right' */
   orientation?: 'left' | 'bottom' | 'right';
-  
+
   /** Icon size in pixels (default: 48) */
   tilesize?: number;
-  
+
   /** Auto-hide the Dock */
   autohide?: boolean;
-  
+
   /** Auto-hide animation time modifier (default: 0.5) */
   'autohide-time-modifier'?: number;
-  
+
   /** Auto-hide delay in seconds (default: 0.5) */
   'autohide-delay'?: number;
-  
+
   /** Show recent applications in Dock */
   'show-recents'?: boolean;
-  
+
   /** Minimize animation effect: 'genie' or 'scale' */
   mineffect?: 'genie' | 'scale';
-  
+
   /** Show only active applications */
   'static-only'?: boolean;
-  
+
   /** Scroll to open Exposé for an app */
   'scroll-to-open'?: boolean;
-  
+
   /** Rearrange Spaces automatically (Mission Control) */
   'mru-spaces'?: boolean;
 }
@@ -46,43 +46,43 @@ export interface DockSettings {
 export interface FinderSettings {
   /** Allow quitting Finder via ⌘ + Q */
   QuitMenuItem?: boolean;
-  
+
   /** Show all file extensions */
   AppleShowAllExtensions?: boolean;
-  
+
   /** Show hidden files */
   AppleShowAllFiles?: boolean;
-  
+
   /** Show path bar */
   ShowPathbar?: boolean;
-  
+
   /** Default view style: 'icnv' (icon), 'clmv' (column), 'Nlsv' (list), 'glyv' (gallery) */
   FXPreferredViewStyle?: 'icnv' | 'clmv' | 'Nlsv' | 'glyv';
-  
+
   /** Keep folders on top when sorting by name */
   _FXSortFoldersFirst?: boolean;
-  
+
   /** Open folders in tabs instead of new windows */
   FinderSpawnTab?: boolean;
-  
+
   /** Default search scope: 'SCev' (This Mac), 'SCcf' (Current Folder), 'SCsp' (Previous Scope) */
   FXDefaultSearchScope?: 'SCev' | 'SCcf' | 'SCsp';
-  
+
   /** Remove items in Trash after 30 days */
   FXRemoveOldTrashItems?: boolean;
-  
+
   /** Show warning before changing file extension */
   FXEnableExtensionChangeWarning?: boolean;
-  
+
   /** Save new documents to iCloud by default */
   NSDocumentSaveNewDocumentsToCloud?: boolean;
-  
+
   /** Show icons in window title bars */
   ShowWindowTitlebarIcons?: boolean;
-  
+
   /** Toolbar title rollover delay */
   NSToolbarTitleViewRolloverDelay?: number;
-  
+
   /** Sidebar icon size: 1 (small), 2 (medium), 3 (large) */
   NSTableViewDefaultSizeMode?: 1 | 2 | 3;
 }
@@ -94,19 +94,19 @@ export interface FinderSettings {
 export interface DesktopSettings {
   /** Keep folders on top on desktop */
   _FXSortFoldersFirstOnDesktop?: boolean;
-  
+
   /** Show all desktop icons */
   CreateDesktop?: boolean;
-  
+
   /** Show hard disks on desktop */
   ShowHardDrivesOnDesktop?: boolean;
-  
+
   /** Show external hard disks on desktop */
   ShowExternalHardDrivesOnDesktop?: boolean;
-  
+
   /** Show removable media on desktop */
   ShowRemovableMediaOnDesktop?: boolean;
-  
+
   /** Show mounted servers on desktop */
   ShowMountedServersOnDesktop?: boolean;
 }
@@ -118,16 +118,16 @@ export interface DesktopSettings {
 export interface ScreenshotSettings {
   /** Disable shadow in screenshots */
   'disable-shadow'?: boolean;
-  
+
   /** Include date in screenshot filename */
   'include-date'?: boolean;
-  
+
   /** Screenshot save location (path) */
   location?: string;
-  
+
   /** Show thumbnail after taking screenshot */
   'show-thumbnail'?: boolean;
-  
+
   /** Screenshot file format: 'png', 'jpg', 'pdf', 'tiff', 'bmp', 'gif' */
   type?: 'png' | 'jpg' | 'pdf' | 'tiff' | 'bmp' | 'gif';
 }
@@ -139,7 +139,7 @@ export interface ScreenshotSettings {
 export interface MenuBarSettings {
   /** Flash clock time separators */
   FlashDateSeparators?: boolean;
-  
+
   /** Digital clock format (e.g., "EEE MMM d  h:mm a") */
   DateFormat?: string;
 }
@@ -151,10 +151,10 @@ export interface MenuBarSettings {
 export interface MouseSettings {
   /** Disable mouse acceleration */
   'com.apple.mouse.linear'?: boolean;
-  
+
   /** Mouse tracking speed (0.0 - 3.0+, default: 1.0) */
   'com.apple.mouse.scaling'?: number;
-  
+
   /** Focus follows mouse (X11-style) */
   focusFollowsMouse?: boolean;
 }
@@ -166,13 +166,13 @@ export interface MouseSettings {
 export interface TrackpadSettings {
   /** Click weight/threshold: 0 (light), 1 (medium), 2 (firm) */
   FirstClickThreshold?: 0 | 1 | 2;
-  
+
   /** Enable dragging with drag lock */
   DragLock?: boolean;
-  
+
   /** Enable dragging without drag lock */
   Dragging?: boolean;
-  
+
   /** Enable three finger drag */
   TrackpadThreeFingerDrag?: boolean;
 }
@@ -184,13 +184,13 @@ export interface TrackpadSettings {
 export interface KeyboardSettings {
   /** Enable press and hold for accent menu (true) or key repeat (false) */
   ApplePressAndHoldEnabled?: boolean;
-  
+
   /** Fn/🌐 key usage type */
   AppleFnUsageType?: number;
-  
+
   /** Function keys behavior: true (F-keys), false (media keys) */
   'com.apple.keyboard.fnState'?: boolean;
-  
+
   /** Keyboard navigation mode: 0 (disabled), 2 (enabled) */
   AppleKeyboardUIMode?: 0 | 2;
 }
@@ -202,13 +202,13 @@ export interface KeyboardSettings {
 export interface MissionControlSettings {
   /** Automatically rearrange Spaces based on recent use */
   'mru-spaces'?: boolean;
-  
+
   /** Group windows by application in Exposé */
   'expose-group-apps'?: boolean;
-  
+
   /** When switching apps, switch to Space with open windows */
   AppleSpacesSwitchOnActivate?: boolean;
-  
+
   /** Displays have separate Spaces */
   'spans-displays'?: boolean;
 }
@@ -220,7 +220,7 @@ export interface MissionControlSettings {
 export interface XcodeSettings {
   /** Additional counterpart suffixes for "Related Items" menu */
   IDEAdditionalCounterpartSuffixes?: string[];
-  
+
   /** Show build operation duration in toolbar */
   ShowBuildOperationDuration?: boolean;
 }
@@ -232,19 +232,19 @@ export interface XcodeSettings {
 export interface MiscSettings {
   /** Enable spring loading for all Dock items */
   'enable-spring-load-actions-on-all-items'?: boolean;
-  
+
   /** Show Music song notifications */
   userWantsPlaybackNotifications?: boolean;
-  
+
   /** Disable quarantine message for downloaded applications */
   LSQuarantine?: boolean;
-  
+
   /** Show "unsaved changes" popup when closing documents */
   NSCloseAlwaysConfirmsChanges?: boolean;
-  
+
   /** Restore windows when quitting and re-opening apps */
   NSQuitAlwaysKeepsWindows?: boolean;
-  
+
   /** Help menu position (developer mode) */
   DevMode?: boolean;
 }
@@ -265,7 +265,7 @@ export interface SafariSettings {
 export interface ActivityMonitorSettings {
   /** Update frequency: 1 (very often), 2 (often), 5 (normally) */
   UpdatePeriod?: 1 | 2 | 5;
-  
+
   /** Dock icon type: 0 (app icon), 2 (network), 3 (disk), 5 (CPU), 6 (GPU) */
   IconType?: 0 | 2 | 3 | 5 | 6;
 }
@@ -277,7 +277,7 @@ export interface ActivityMonitorSettings {
 export interface TextEditSettings {
   /** Use rich text format by default */
   RichText?: boolean;
-  
+
   /** Use smart quotes */
   SmartQuotes?: boolean;
 }
