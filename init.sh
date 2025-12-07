@@ -30,7 +30,7 @@ if ! xcode-select -p &> /dev/null; then
     echo -e "${YELLOW}A dialog will appear. Please click 'Install' and wait for completion.${NC}"
 
     # Trigger the installation
-    xcode-select --install
+    sudo xcode-select --install
 
     # Wait for installation to complete
     echo -e "${YELLOW}Waiting for Xcode Command Line Tools installation to complete...${NC}"
