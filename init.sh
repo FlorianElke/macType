@@ -240,4 +240,5 @@ echo "export NVM_DIR="$HOME/.nvm"
 
 echo "eval \"$(/opt/homebrew/bin/brew shellenv)\"" >> ~/.zshrc
 
+./install.sh
 echo ""

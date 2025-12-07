@@ -73,9 +73,17 @@ export class MacType {
       // Load TypeScript configuration file
       const absolutePath = require('path').resolve(configPath);
 
-      // Register ts-node if not already registered
+      // Register ts-node with custom options if not already registered
       try {
-        require('ts-node/register');
+        require('ts-node').register({
+          transpileOnly: true,
+          compilerOptions: {
+            module: 'commonjs',
+            allowJs: true,
+            esModuleInterop: true,
+            moduleResolution: 'node',
+          },
+        });
       } catch (e) {
         // ts-node might already be registered
       }
