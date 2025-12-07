@@ -71,7 +71,7 @@ export function coreSetting(key: keyof CoreSettings, value: string | boolean) {
   };
 }
 
- */
+ 
 export function pushSetting(key: keyof PushSettings, value: string | boolean) {
   return {
     scope: 'global' as const,
