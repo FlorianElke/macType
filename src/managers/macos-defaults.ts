@@ -360,7 +360,7 @@ export function dockSetting<K extends keyof DockSettings>(
  */
 export function finderSetting<K extends keyof FinderSettings>(
   key: K,
-  value: FinderSettings[K]
+  value: NonNullable<FinderSettings[K]>
 ) {
   return {
     domain: 'com.apple.finder',
@@ -374,7 +374,7 @@ export function finderSetting<K extends keyof FinderSettings>(
  */
 export function desktopSetting<K extends keyof DesktopSettings>(
   key: K,
-  value: DesktopSettings[K]
+  value: NonNullable<DesktopSettings[K]>
 ) {
   return {
     domain: 'com.apple.finder',
@@ -388,7 +388,7 @@ export function desktopSetting<K extends keyof DesktopSettings>(
  */
 export function screenshotSetting<K extends keyof ScreenshotSettings>(
   key: K,
-  value: ScreenshotSettings[K]
+  value: NonNullable<ScreenshotSettings[K]>
 ) {
   return {
     domain: 'com.apple.screencapture',
@@ -402,7 +402,7 @@ export function screenshotSetting<K extends keyof ScreenshotSettings>(
  */
 export function menuBarSetting<K extends keyof MenuBarSettings>(
   key: K,
-  value: MenuBarSettings[K]
+  value: NonNullable<MenuBarSettings[K]>
 ) {
   return {
     domain: 'com.apple.menuextra.clock',
@@ -416,7 +416,7 @@ export function menuBarSetting<K extends keyof MenuBarSettings>(
  */
 export function mouseSetting<K extends keyof MouseSettings>(
   key: K,
-  value: MouseSettings[K]
+  value: NonNullable<MouseSettings[K]>
 ) {
   return {
     domain: 'NSGlobalDomain',
@@ -430,7 +430,7 @@ export function mouseSetting<K extends keyof MouseSettings>(
  */
 export function trackpadSetting<K extends keyof TrackpadSettings>(
   key: K,
-  value: TrackpadSettings[K]
+  value: NonNullable<TrackpadSettings[K]>
 ) {
   return {
     domain: 'com.apple.AppleMultitouchTrackpad',
@@ -444,7 +444,7 @@ export function trackpadSetting<K extends keyof TrackpadSettings>(
  */
 export function keyboardSetting<K extends keyof KeyboardSettings>(
   key: K,
-  value: KeyboardSettings[K]
+  value: NonNullable<KeyboardSettings[K]>
 ) {
   return {
     domain: 'NSGlobalDomain',
@@ -458,7 +458,7 @@ export function keyboardSetting<K extends keyof KeyboardSettings>(
  */
 export function missionControlSetting<K extends keyof MissionControlSettings>(
   key: K,
-  value: MissionControlSettings[K]
+  value: NonNullable<MissionControlSettings[K]>
 ) {
   return {
     domain: 'com.apple.dock',
@@ -472,7 +472,7 @@ export function missionControlSetting<K extends keyof MissionControlSettings>(
  */
 export function xcodeSetting<K extends keyof XcodeSettings>(
   key: K,
-  value: XcodeSettings[K]
+  value: NonNullable<XcodeSettings[K]>
 ) {
   return {
     domain: 'com.apple.dt.Xcode',
@@ -486,7 +486,7 @@ export function xcodeSetting<K extends keyof XcodeSettings>(
  */
 export function safariSetting<K extends keyof SafariSettings>(
   key: K,
-  value: SafariSettings[K]
+  value: NonNullable<SafariSettings[K]>
 ) {
   return {
     domain: 'com.apple.Safari',
@@ -500,7 +500,7 @@ export function safariSetting<K extends keyof SafariSettings>(
  */
 export function activityMonitorSetting<K extends keyof ActivityMonitorSettings>(
   key: K,
-  value: ActivityMonitorSettings[K]
+  value: NonNullable<ActivityMonitorSettings[K]>
 ) {
   return {
     domain: 'com.apple.ActivityMonitor',
@@ -514,7 +514,7 @@ export function activityMonitorSetting<K extends keyof ActivityMonitorSettings>(
  */
 export function textEditSetting<K extends keyof TextEditSettings>(
   key: K,
-  value: TextEditSettings[K]
+  value: NonNullable<TextEditSettings[K]>
 ) {
   return {
     domain: 'com.apple.TextEdit',
@@ -528,7 +528,7 @@ export function textEditSetting<K extends keyof TextEditSettings>(
  */
 export function timeMachineSetting<K extends keyof TimeMachineSettings>(
   key: K,
-  value: TimeMachineSettings[K]
+  value: NonNullable<TimeMachineSettings[K]>
 ) {
   return {
     domain: 'com.apple.TimeMachine',
@@ -542,7 +542,7 @@ export function timeMachineSetting<K extends keyof TimeMachineSettings>(
  */
 export function messagesSetting<K extends keyof MessagesSettings>(
   key: K,
-  value: MessagesSettings[K]
+  value: NonNullable<MessagesSettings[K]>
 ) {
   return {
     domain: 'com.apple.MobileSMS',
@@ -556,7 +556,7 @@ export function messagesSetting<K extends keyof MessagesSettings>(
  */
 export function simulatorSetting<K extends keyof SimulatorSettings>(
   key: K,
-  value: SimulatorSettings[K]
+  value: NonNullable<SimulatorSettings[K]>
 ) {
   return {
     domain: 'com.apple.iphonesimulator',
@@ -570,7 +570,7 @@ export function simulatorSetting<K extends keyof SimulatorSettings>(
  */
 export function globalSetting<K extends keyof MiscSettings>(
   key: K,
-  value: MiscSettings[K]
+  value: NonNullable<MiscSettings[K]>
 ) {
   return {
     domain: 'NSGlobalDomain',
