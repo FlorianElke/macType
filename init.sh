@@ -48,7 +48,7 @@ echo ""
 # Check and install Homebrew
 if ! command -v brew &> /dev/null; then
     echo -e "${YELLOW}Homebrew not found. Installing Homebrew...${NC}"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
     # Add Homebrew to PATH for Apple Silicon Macs
     if [[ $(uname -m) == 'arm64' ]]; then
