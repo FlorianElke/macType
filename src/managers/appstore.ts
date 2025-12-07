@@ -1,18 +1,14 @@
 import { runCommand, runCommandSafe, runCommandWithOutput } from '../utils/exec';
 import { AppStoreApp, AppStoreState, ApplyResult } from '../types';
 
-/**
- * Manager for Mac App Store applications using the `mas` CLI
- */
+
 export class AppStoreManager {
   private verbose: boolean = false;
 
   setVerbose(verbose: boolean): void {
     this.verbose = verbose;
   }
-  /**
-   * Check if mas CLI is installed
-   */
+
   async isMasInstalled(): Promise<boolean> {
     try {
       await runCommand('which mas');
@@ -22,25 +18,19 @@ export class AppStoreManager {
     }
   }
 
-  /**
-   * Get the current state of installed App Store apps
-   */
   async getCurrentState(): Promise<AppStoreState> {
     const apps = new Map<number, string>();
 
     try {
-      // Check if mas is installed
       if (!(await this.isMasInstalled())) {
         console.warn('⚠️  mas CLI is not installed. Install with: brew install mas');
         return { apps };
       }
 
-      // Get list of installed apps
       const { stdout } = await runCommand('mas list');
       const lines = stdout.split('\n').filter((line: string) => line.trim());
 
       for (const line of lines) {
-        // Format: "497799835 Xcode (14.2)"
         const match = line.match(/^(\d+)\s+(.+?)\s+\(/);
         if (match) {
           const id = parseInt(match[1], 10);
@@ -55,11 +45,7 @@ export class AppStoreManager {
     return { apps };
   }
 
-  /**
-   * Install an App Store app
-   */
   async install(app: AppStoreApp): Promise<ApplyResult> {
-    // Check if mas is installed
     if (!(await this.isMasInstalled())) {
       return {
         success: false,
@@ -83,10 +69,6 @@ export class AppStoreManager {
     }
   }
 
-  /**
-   * Uninstall an App Store app
-   * Note: mas doesn't support uninstalling, so this is a no-op
-   */
   async uninstall(app: AppStoreApp): Promise<ApplyResult> {
     return {
       success: false,
@@ -95,12 +77,8 @@ export class AppStoreManager {
     };
   }
 
-  /**
-   * Search for App Store apps
-   */
   async search(query: string): Promise<Array<{ id: number; name: string; version: string }>> {
     try {
-      // Check if mas is installed
       if (!(await this.isMasInstalled())) {
         throw new Error('mas CLI is not installed. Install with: brew install mas');
       }
@@ -110,7 +88,6 @@ export class AppStoreManager {
       const results: Array<{ id: number; name: string; version: string }> = [];
 
       for (const line of lines) {
-        // Format: "497799835  Xcode                                (14.2)"
         const match = line.match(/^(\d+)\s+(.+?)\s+\((.+?)\)/);
         if (match) {
           const id = parseInt(match[1], 10);
@@ -126,14 +103,10 @@ export class AppStoreManager {
     }
   }
 
-  /**
-   * Apply the desired App Store configuration
-   */
   async apply(apps: AppStoreApp[], strict: boolean = false): Promise<void> {
     const currentState = await this.getCurrentState();
     const desiredApps = new Set(apps.map((app) => app.id));
 
-    // Install missing apps
     for (const app of apps) {
       if (!currentState.apps.has(app.id)) {
         console.log(`📱 Installing ${app.name}...`);
@@ -149,7 +122,6 @@ export class AppStoreManager {
       }
     }
 
-    // In strict mode, warn about extra apps (but can't uninstall)
     if (strict) {
       for (const [id, name] of currentState.apps) {
         if (!desiredApps.has(id)) {

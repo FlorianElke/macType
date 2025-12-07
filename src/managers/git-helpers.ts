@@ -1,11 +1,4 @@
-/**
- * Type-safe Git configuration helpers
- * Provides IntelliSense support for common Git settings
- */
 
-// ============================================================================
-// COMMON GIT SETTINGS TYPES
-// ============================================================================
 
 export interface UserSettings {
   name?: string;
@@ -60,13 +53,7 @@ export interface AliasSettings {
   [key: string]: string;
 }
 
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
 
-/**
- * Create a global git config setting for user identity
- */
 export function userSetting(key: keyof UserSettings, value: string) {
   return {
     scope: 'global' as const,
@@ -75,9 +62,7 @@ export function userSetting(key: keyof UserSettings, value: string) {
   };
 }
 
-/**
- * Create a global git config setting for core settings
- */
+
 export function coreSetting(key: keyof CoreSettings, value: string | boolean) {
   return {
     scope: 'global' as const,
@@ -86,8 +71,6 @@ export function coreSetting(key: keyof CoreSettings, value: string | boolean) {
   };
 }
 
-/**
- * Create a global git config setting for push behavior
  */
 export function pushSetting(key: keyof PushSettings, value: string | boolean) {
   return {
@@ -97,9 +80,6 @@ export function pushSetting(key: keyof PushSettings, value: string | boolean) {
   };
 }
 
-/**
- * Create a global git config setting for pull behavior
- */
 export function pullSetting(key: keyof PullSettings, value: string | boolean) {
   return {
     scope: 'global' as const,
@@ -108,9 +88,6 @@ export function pullSetting(key: keyof PullSettings, value: string | boolean) {
   };
 }
 
-/**
- * Create a global git config setting for commit behavior
- */
 export function commitSetting(key: keyof CommitSettings, value: string | boolean) {
   return {
     scope: 'global' as const,
@@ -119,9 +96,6 @@ export function commitSetting(key: keyof CommitSettings, value: string | boolean
   };
 }
 
-/**
- * Create a global git config setting for init settings
- */
 export function initSetting(key: keyof InitSettings, value: string) {
   return {
     scope: 'global' as const,
@@ -130,9 +104,6 @@ export function initSetting(key: keyof InitSettings, value: string) {
   };
 }
 
-/**
- * Create a global git config setting for diff tool
- */
 export function diffSetting(key: keyof DiffSettings, value: string) {
   return {
     scope: 'global' as const,
@@ -141,9 +112,6 @@ export function diffSetting(key: keyof DiffSettings, value: string) {
   };
 }
 
-/**
- * Create a global git config setting for merge tool
- */
 export function mergeSetting(key: keyof MergeSettings, value: string | boolean) {
   return {
     scope: 'global' as const,
@@ -152,9 +120,6 @@ export function mergeSetting(key: keyof MergeSettings, value: string | boolean) 
   };
 }
 
-/**
- * Create a global git config setting for credential helper
- */
 export function credentialSetting(key: keyof CredentialSettings, value: string) {
   return {
     scope: 'global' as const,
@@ -163,9 +128,6 @@ export function credentialSetting(key: keyof CredentialSettings, value: string) 
   };
 }
 
-/**
- * Create a global git alias
- */
 export function aliasSetting(aliasName: string, command: string) {
   return {
     scope: 'global' as const,
@@ -174,9 +136,6 @@ export function aliasSetting(aliasName: string, command: string) {
   };
 }
 
-/**
- * Create a custom git config setting
- */
 export function gitSetting(
   scope: 'global' | 'system' | 'local',
   key: string,
@@ -189,13 +148,7 @@ export function gitSetting(
   };
 }
 
-// ============================================================================
-// COMMON PRESETS
-// ============================================================================
 
-/**
- * Common Git aliases preset
- */
 export const commonAliases = [
   aliasSetting('co', 'checkout'),
   aliasSetting('br', 'branch'),
@@ -206,9 +159,6 @@ export const commonAliases = [
   aliasSetting('lg', "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"),
 ];
 
-/**
- * Recommended Git settings for modern workflows
- */
 export const modernGitSettings = [
   initSetting('defaultBranch', 'main'),
   pullSetting('rebase', true),

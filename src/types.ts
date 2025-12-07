@@ -1,14 +1,10 @@
-/**
- * Homebrew package (formula)
- */
+
 export interface BrewPackage {
   name: string;
   version?: string;
 }
 
-/**
- * Homebrew cask (GUI application)
- */
+
 export interface BrewCask {
   name: string;
   version?: string;
@@ -33,9 +29,7 @@ export interface AppStoreApp {
   name: string;
 }
 
-/**
- * Type of value for macOS defaults system
- */
+
 export type MacOSValueType = 'string' | 'int' | 'float' | 'bool' | 'array' | 'dict';
 
 /**
@@ -59,9 +53,7 @@ export interface MacOSSetting {
   type?: MacOSValueType;
 }
 
-/**
- * Homebrew configuration
- */
+
 export interface BrewConfiguration {
   /** List of Homebrew formulas to install */
   packages?: string[];
@@ -88,9 +80,7 @@ export interface AppStoreConfiguration {
   apps?: AppStoreApp[];
 }
 
-/**
- * macOS system settings configuration
- */
+
 export interface MacOSConfiguration {
   /** List of macOS defaults settings to apply */
   settings?: MacOSSetting[];
@@ -100,10 +90,7 @@ export interface MacOSConfiguration {
   wallpaper?: string;
 }
 
-/**
- * Dock app configuration
- * Can be a simple string or an object with position
- */
+
 export type DockApp = string | {
   /** App name or path (e.g., 'Safari' or '/Applications/Safari.app') */
   name: string;
@@ -147,10 +134,7 @@ export interface GitSetting {
   value: string;
 }
 
-/**
- * Files configuration
- * Can be an array of ConfigFile objects directly
- */
+
 export type FilesConfiguration = ConfigFile[];
 
 /**

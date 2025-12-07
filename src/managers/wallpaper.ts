@@ -7,9 +7,7 @@ export interface WallpaperState {
 }
 
 export class WallpaperManager {
-  /**
-   * Get current wallpaper path for all desktops
-   */
+
   getCurrentState(): WallpaperState | null {
     try {
       const script = `
@@ -24,8 +22,6 @@ export class WallpaperManager {
         encoding: 'utf-8'
       }).trim();
 
-      // AppleScript returns a comma-separated list if multiple desktops
-      // We'll use the first one as the canonical wallpaper
       const wallpapers = result.split(', ');
       const path = wallpapers[0];
 
@@ -36,9 +32,7 @@ export class WallpaperManager {
     }
   }
 
-  /**
-   * Set wallpaper for all desktops
-   */
+
   setWallpaper(wallpaperPath: string): void {
     const resolvedPath = resolve(wallpaperPath);
 
@@ -47,7 +41,6 @@ export class WallpaperManager {
     }
 
     try {
-      // AppleScript to set wallpaper on all desktops
       const script = `
         tell application "System Events"
           tell every desktop
@@ -64,9 +57,7 @@ export class WallpaperManager {
     }
   }
 
-  /**
-   * Check if wallpaper needs to be updated
-   */
+
   needsUpdate(currentPath: string | null, desiredPath: string): boolean {
     if (!currentPath) return true;
 

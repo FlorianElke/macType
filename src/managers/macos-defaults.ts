@@ -1,6 +1,5 @@
 /**
- * Type-safe macOS defaults settings based on https://macos-defaults.com/
- * This file provides IntelliSense support for all documented macOS settings
+ *  https://macos-defaults.com/
  */
 
 // ============================================================================
@@ -65,9 +64,7 @@ export interface DockSettings {
   'persistent-apps'?: any[];
 }
 
-// ============================================================================
 // FINDER SETTINGS
-// ============================================================================
 
 export interface FinderSettings {
   /** Allow quitting Finder via ⌘ + Q */

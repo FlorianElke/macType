@@ -2,9 +2,7 @@ import { runCommand, runCommandSafe } from '../utils/exec';
 import { ApplyResult, DockApp } from '../types';
 
 export class DockManager {
-  /**
-   * Normalize DockApp to object format
-   */
+
   private normalizeDockApp(app: DockApp): { name: string; position?: number } {
     if (typeof app === 'string') {
       return { name: app };
@@ -12,9 +10,6 @@ export class DockManager {
     return app;
   }
 
-  /**
-   * Add an app to the Dock
-   */
   async addApp(app: DockApp): Promise<ApplyResult> {
     const normalizedApp = this.normalizeDockApp(app);
 
@@ -53,9 +48,6 @@ export class DockManager {
     }
   }
 
-  /**
-   * Remove an app from the Dock
-   */
   async removeApp(appName: string): Promise<ApplyResult> {
     try {
       const { stdout: dockutilPath } = await runCommandSafe('which dockutil');
@@ -82,20 +74,15 @@ export class DockManager {
     }
   }
 
-  /**
-   * Get current Dock apps
-   */
   async getCurrentApps(): Promise<string[]> {
     try {
       const { stdout } = await runCommandSafe('dockutil --list');
       if (!stdout) return [];
 
-      // Parse output format: "App Name\tfile://path\ttype\tplist\tbundle-id"
       const apps = stdout
         .split('\n')
         .filter(line => line.trim())
         .map(line => {
-          // Split by tab and get first column (app name)
           const parts = line.split('\t');
           return parts[0] ? parts[0].trim() : '';
         })
@@ -107,14 +94,10 @@ export class DockManager {
     }
   }
 
-  /**
-   * Set Dock apps to exact list (removes all others)
-   */
   async setApps(apps: DockApp[]): Promise<ApplyResult[]> {
     const results: ApplyResult[] = [];
 
     try {
-      // Check if dockutil is installed
       const { stdout: dockutilPath } = await runCommandSafe('which dockutil');
       if (!dockutilPath) {
         results.push({
@@ -125,7 +108,6 @@ export class DockManager {
         return results;
       }
 
-      // Get current apps (only persistent apps, not recent apps)
       const { stdout } = await runCommandSafe('dockutil --list');
       const currentApps = stdout
         .split('\n')
@@ -136,11 +118,9 @@ export class DockManager {
         })
         .filter(name => name);
 
-      // Determine desired app names
       const desiredAppNames = new Set(
         apps.map(app => {
           const normalizedApp = this.normalizeDockApp(app);
-          // Extract app name from path if needed
           if (normalizedApp.name.endsWith('.app')) {
             return normalizedApp.name.split('/').pop()!.replace('.app', '');
           }
@@ -148,7 +128,6 @@ export class DockManager {
         })
       );
 
-      // Remove apps that are not in desired list
       for (const currentApp of currentApps) {
         if (!desiredAppNames.has(currentApp)) {
           try {
@@ -167,7 +146,6 @@ export class DockManager {
         }
       }
 
-      // Add desired apps that are not currently in Dock
       for (const app of apps) {
         const normalizedApp = this.normalizeDockApp(app);
         const appName = normalizedApp.name.endsWith('.app')
@@ -199,7 +177,6 @@ export class DockManager {
         }
       }
 
-      // Restart Dock once at the end
       if (results.length > 0) {
         await runCommand('killall Dock');
       }

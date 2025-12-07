@@ -6,7 +6,6 @@ export class FileManager {
   private generatedDir: string;
 
   constructor(configDir: string) {
-    // Store generated files next to config.ts in a .generated directory
     this.generatedDir = resolve(configDir, '.generated');
   }
 
@@ -31,7 +30,6 @@ export class FileManager {
             symlinks.set(target, linkTarget);
           }
         } catch (error) {
-          // Ignore errors reading symlinks
         }
       }
     }
@@ -46,35 +44,26 @@ export class FileManager {
       throw new Error(`Source file not found: ${absoluteSource}`);
     }
 
-    // If it's a TypeScript file, compile it
     if (absoluteSource.endsWith('.ts')) {
-      // Register ts-node if not already registered
       try {
         require('ts-node/register');
       } catch (e) {
-        // ts-node might already be registered
       }
 
-      // Clear the require cache to ensure fresh load
       delete require.cache[absoluteSource];
 
-      // Load the TypeScript/JavaScript module
       const module = require(absoluteSource);
 
-      // Support both default export and named export
       const content = module.default || module.content || module;
 
       if (typeof content === 'function') {
-        // If it's a function, call it to get the content
         return await content();
       } else if (typeof content === 'string') {
-        // If it's a string, use it directly
         return content;
       } else {
         throw new Error(`Config file ${sourcePath} must export a string or function that returns a string`);
       }
     } else {
-      // For non-TypeScript files, just read them directly
       const { readFileSync } = require('fs');
       return readFileSync(absoluteSource, 'utf-8');
     }
@@ -110,37 +99,30 @@ export class FileManager {
     }
 
     try {
-      // Generate the config file content
       const content = await this.generateConfigFile(source, configDir);
 
-      // Ensure .generated directory exists
       if (!existsSync(this.generatedDir)) {
         mkdirSync(this.generatedDir, { recursive: true });
       }
 
-      // Write generated content to .generated directory
       const generatedFileName = basename(target);
       const generatedPath = resolve(this.generatedDir, generatedFileName);
       writeFileSync(generatedPath, content, 'utf-8');
 
-      // Backup existing file if requested
       if (backup && existsSync(expandedTarget) && !lstatSync(expandedTarget).isSymbolicLink()) {
         const backupPath = `${expandedTarget}.backup`;
         renameSync(expandedTarget, backupPath);
       }
 
-      // Remove existing file/symlink
       if (existsSync(expandedTarget)) {
         unlinkSync(expandedTarget);
       }
 
-      // Ensure target directory exists
       const targetDir = dirname(expandedTarget);
       if (!existsSync(targetDir)) {
         mkdirSync(targetDir, { recursive: true });
       }
 
-      // Create symlink
       symlinkSync(generatedPath, expandedTarget);
 
       return {
