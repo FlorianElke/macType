@@ -231,4 +231,11 @@ echo -e "1. Edit your config file: ${BLUE}$CONFIG_DIR/config.ts${NC}"
 echo -e "   (TypeScript config provides IntelliSense and type checking!)"
 echo -e "2. Run: ${BLUE}npm run dev apply${NC}"
 echo -e "   (or specify a config: ${BLUE}npm run dev apply path/to/config.ts${NC})"
+echo -e "IMPORTANT please dont close this shell before you ensure to have 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+in you .zshrc
+"
 echo ""
