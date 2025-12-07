@@ -1,5 +1,5 @@
 import { Configuration } from './src/types';
-import { dockSetting } from './src/managers/macos-defaults';
+//import { dockSetting } from './src/managers/macos-defaults';
 
 /**
  * macType Configuration
