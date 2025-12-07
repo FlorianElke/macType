@@ -1,0 +1,255 @@
+import { readFileSync } from 'fs';
+import { dirname } from 'path';
+import chalk from 'chalk';
+import { BrewManager } from './managers/brew';
+import { MacOSManager } from './managers/macos';
+import { FileManager } from './managers/files';
+import { DiffEngine } from './diff';
+import { Configuration, Diff, ApplyResult } from './types';
+
+export interface MacTypeOptions {
+  dryRun?: boolean;
+  verbose?: boolean;
+  strict?: boolean;
+}
+
+export class MacType {
+  private brewManager: BrewManager;
+  private macosManager: MacOSManager;
+  private fileManager?: FileManager;
+  private diffEngine: DiffEngine;
+
+  constructor() {
+    this.brewManager = new BrewManager();
+    this.macosManager = new MacOSManager();
+    this.diffEngine = new DiffEngine();
+  }
+
+  async loadConfig(configPath: string): Promise<Configuration> {
+    try {
+      // Load TypeScript configuration file
+      const absolutePath = require('path').resolve(configPath);
+
+      // Register ts-node if not already registered
+      try {
+        require('ts-node/register');
+      } catch (e) {
+        // ts-node might already be registered
+      }
+
+      // Clear the require cache to ensure fresh load
+      delete require.cache[absolutePath];
+
+      // Load the TypeScript module
+      const module = require(absolutePath);
+
+      // Support both default export and named export
+      const config = module.default || module.config || module;
+
+      if (!config || typeof config !== 'object') {
+        throw new Error('TypeScript config file must export a Configuration object');
+      }
+
+      return config as Configuration;
+    } catch (error: any) {
+      throw new Error(`Failed to load configuration: ${error.message}`);
+    }
+  }
+
+  async run(configPath: string, options: MacTypeOptions = {}): Promise<void> {
+    console.log(chalk.bold.cyan('\n╔═══════════════════════════════════╗'));
+    console.log(chalk.bold.cyan('║       macType Configuration       ║'));
+    console.log(chalk.bold.cyan('╚═══════════════════════════════════╝\n'));
+
+    const config = await this.loadConfig(configPath);
+    console.log(chalk.blue('📋 Config loaded from:'), chalk.dim(configPath));
+
+    // Initialize FileManager with config directory
+    const configDir = dirname(configPath);
+    this.fileManager = new FileManager(configDir);
+
+    console.log(chalk.blue('\n🔍 Reading current system state...'));
+    const brewState = await this.brewManager.getCurrentState();
+    const macosState = await this.macosManager.getCurrentState(config.macos?.settings || []);
+    const fileState = await this.fileManager.getCurrentState(config.files?.files || []);
+
+    const currentState = {
+      brew: brewState,
+      macos: macosState,
+      files: fileState
+    };
+
+    console.log(chalk.blue('⚙️  Generating diff...'));
+    const diff = this.diffEngine.generateDiff(config, currentState, options.strict === true, this.fileManager['generatedDir']);
+
+    this.printDiff(diff, configPath);
+
+    if (!this.diffEngine.hasDifferences(diff)) {
+      console.log(chalk.green('\n✓ No changes needed. System is already in desired state.'));
+      return;
+    }
+
+    if (options.dryRun) {
+      console.log(chalk.yellow('\n⚠️  Dry run mode - no changes will be applied.'));
+      return;
+    }
+
+    console.log(chalk.blue('\n🚀 Applying changes...\n'));
+    await this.applyDiff(diff, options, configDir);
+  }
+
+  private printDiff(diff: Diff, configPath: string): void {
+    console.log(chalk.bold.yellow('\n╔═══════════════════════════════════╗'));
+    console.log(chalk.bold.yellow('║           CHANGES DIFF            ║'));
+    console.log(chalk.bold.yellow('╚═══════════════════════════════════╝\n'));
+
+    const packageChanges = diff.brew.packages.filter(d => d.action !== 'none');
+    if (packageChanges.length > 0) {
+      console.log(chalk.bold.magenta('📦 Homebrew Packages:'));
+      for (const pkg of packageChanges) {
+        const line = this.formatDiffLine(pkg.action, pkg.name, pkg.currentVersion);
+        console.log(`  ${line}`);
+      }
+      console.log();
+    }
+
+    const caskChanges = diff.brew.casks.filter(d => d.action !== 'none');
+    if (caskChanges.length > 0) {
+      console.log(chalk.bold.magenta('🍺 Homebrew Casks:'));
+      for (const cask of caskChanges) {
+        const line = this.formatDiffLine(cask.action, cask.name, cask.currentVersion);
+        console.log(`  ${line}`);
+      }
+      console.log();
+    }
+
+    const settingChanges = diff.macos.settings.filter(d => d.action !== 'none');
+    if (settingChanges.length > 0) {
+      console.log(chalk.bold.magenta('⚙️  macOS Settings:'));
+      for (const setting of settingChanges) {
+        if (setting.action === 'update') {
+          const line = `${this.getActionSymbol(setting.action)} ${chalk.cyan(setting.domain)} ${chalk.dim(setting.key)}: ${chalk.red(setting.currentValue)} ${chalk.dim('→')} ${chalk.green(setting.desiredValue)}`;
+          console.log(`  ${line}`);
+        } else {
+          const line = `${this.getActionSymbol(setting.action)} ${chalk.cyan(setting.domain)} ${chalk.dim(setting.key)} ${chalk.dim('=')} ${chalk.green(setting.desiredValue)}`;
+          console.log(`  ${line}`);
+        }
+      }
+      console.log();
+    }
+
+    const fileChanges = diff.files.files.filter(d => d.action !== 'none');
+    if (fileChanges.length > 0) {
+      console.log(chalk.bold.magenta('📄 Config Files:'));
+      for (const file of fileChanges) {
+        const symbol = this.getActionSymbol(file.action);
+        if (file.action === 'update' && file.currentTarget) {
+          const line = `${symbol} ${chalk.cyan(file.target)} ${chalk.dim('←')} ${chalk.yellow(file.source)}`;
+          console.log(`  ${line}`);
+        } else {
+          const line = `${symbol} ${chalk.green(file.target)} ${chalk.dim('←')} ${chalk.cyan(file.source)}`;
+          console.log(`  ${line}`);
+        }
+      }
+      console.log();
+    }
+  }
+
+  private formatDiffLine(action: string, name: string, version?: string): string {
+    const symbol = this.getActionSymbol(action);
+    const versionText = version ? chalk.dim(` (${version})`) : '';
+
+    switch (action) {
+      case 'add':
+        return `${symbol} ${chalk.green(name)}${versionText}`;
+      case 'remove':
+        return `${symbol} ${chalk.red(name)}${versionText}`;
+      case 'update':
+        return `${symbol} ${chalk.yellow(name)}${versionText}`;
+      default:
+        return `${symbol} ${name}${versionText}`;
+    }
+  }
+
+  private getActionSymbol(action: string): string {
+    switch (action) {
+      case 'add':
+        return chalk.green('✓');
+      case 'remove':
+        return chalk.red('✗');
+      case 'update':
+        return chalk.yellow('↻');
+      default:
+        return ' ';
+    }
+  }
+
+  private async applyDiff(diff: Diff, options: MacTypeOptions, configDir: string): Promise<void> {
+    const results: ApplyResult[] = [];
+
+    for (const pkgDiff of diff.brew.packages) {
+      if (pkgDiff.action !== 'none') {
+        const result = await this.brewManager.applyPackageDiff(pkgDiff);
+        results.push(result);
+        this.printResult(result, options.verbose);
+      }
+    }
+
+    for (const caskDiff of diff.brew.casks) {
+      if (caskDiff.action !== 'none') {
+        const result = await this.brewManager.applyCaskDiff(caskDiff);
+        results.push(result);
+        this.printResult(result, options.verbose);
+      }
+    }
+
+    for (const settingDiff of diff.macos.settings) {
+      if (settingDiff.action !== 'none') {
+        const result = await this.macosManager.applySettingDiff(settingDiff);
+        results.push(result);
+        this.printResult(result, options.verbose);
+      }
+    }
+
+    if (this.fileManager) {
+      for (const fileDiff of diff.files.files) {
+        if (fileDiff.action !== 'none') {
+          const result = await this.fileManager.applyFileDiff(fileDiff, configDir);
+          results.push(result);
+          this.printResult(result, options.verbose);
+        }
+      }
+    }
+
+    const successCount = results.filter(r => r.success).length;
+    const failureCount = results.filter(r => !r.success).length;
+
+    console.log(chalk.bold.cyan('\n╔═══════════════════════════════════╗'));
+    console.log(chalk.bold.cyan('║             SUMMARY               ║'));
+    console.log(chalk.bold.cyan('╚═══════════════════════════════════╝\n'));
+
+    if (successCount > 0) {
+      console.log(chalk.green(`✓ Success: ${successCount}`));
+    }
+    if (failureCount > 0) {
+      console.log(chalk.red(`✗ Failed: ${failureCount}`));
+    }
+
+    if (failureCount === 0 && successCount > 0) {
+      console.log(chalk.bold.green('\n🎉 All changes applied successfully!\n'));
+    } else if (failureCount > 0) {
+      console.log(chalk.bold.yellow('\n⚠️  Some changes failed. Check the output above for details.\n'));
+    }
+  }
+
+  private printResult(result: ApplyResult, verbose?: boolean): void {
+    if (result.success) {
+      console.log(chalk.green(`  ✓ ${result.message}`));
+    } else {
+      console.log(chalk.red(`  ✗ ${result.message}`));
+      if (verbose && result.error) {
+        console.log(chalk.dim(`    Error: ${result.error}`));
+      }
+    }
+  }
+}

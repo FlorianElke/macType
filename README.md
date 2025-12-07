@@ -1,0 +1,407 @@
+# macType
+
+A TypeScript framework for managing Homebrew packages and macOS settings with declarative configuration and idempotent operations.
+
+## Features
+
+- **TypeScript Configuration**: Use TypeScript config files with full IntelliSense and type checking
+- **Config File Management**: Manage all your dotfiles (zshrc, vimrc, etc.) in TypeScript with automatic generation and symlinking
+- **Declarative Configuration**: Define your desired system state in a configuration file
+- **Idempotent Operations**: Running the same configuration multiple times is safe - only applies necessary changes
+- **Beautiful Output**: Colored terminal output with progress indicators and clear summaries
+- **Diff Preview**: See exactly what will change before applying with `mactype diff`
+- **Dry Run Mode**: Test your configuration without making any changes
+- **Strict Mode**: Optionally enforce exact package lists (remove unlisted packages)
+- **Homebrew Integration**: Manage both packages and casks
+- **macOS Settings**: Configure system preferences via the `defaults` command
+- **Global Binary**: Install once, use anywhere with `mactype` command
+
+## Installation
+
+### Quick Install (Recommended)
+
+Run the installation script to install macType globally:
+
+```bash
+./install.sh
+```
+
+This will:
+- Install npm dependencies
+- Build the project
+- Link the `mactype` command globally
+
+Then initialize your configuration:
+
+```bash
+./init.sh
+```
+
+This will:
+- Install Homebrew (if not already installed)
+- Install nvm and Node.js 22
+- Create the config directory at `~/.config/macType`
+- Copy example TypeScript config and dotfile templates
+- Build the project
+- Link the package globally for TypeScript IntelliSense
+- Set up TypeScript support in your config directory
+
+### Manual Installation
+
+If you prefer to install manually:
+
+```bash
+# Install and build
+npm install
+npm run build
+
+# Link globally
+npm link
+
+# Initialize config
+./init.sh
+```
+
+### Uninstall
+
+To remove the global binary:
+
+```bash
+./uninstall.sh
+```
+
+## Usage
+
+### CLI Commands
+
+After installing globally, use the `mactype` command:
+
+Preview changes without applying (recommended first step):
+```bash
+mactype diff
+```
+
+Apply your default configuration (`~/.config/macType/config.ts`):
+```bash
+mactype apply
+```
+
+Apply a specific configuration:
+```bash
+mactype apply /path/to/config.ts
+```
+
+Dry run to see what would change:
+```bash
+mactype apply --dry-run
+```
+
+Verbose output:
+```bash
+mactype apply --verbose
+```
+
+Strict mode (removes packages not in config):
+```bash
+mactype apply --strict
+```
+
+Show help:
+```bash
+mactype --help
+```
+
+### Command Options
+
+**`mactype diff [config]`**
+- Shows what changes would be applied without executing them
+- Options:
+  - `-s, --strict` - Show removals for packages not listed in config
+
+**`mactype apply [config]`**
+- Applies the configuration to your system
+- Options:
+  - `-d, --dry-run` - Show what would be changed without applying
+  - `-v, --verbose` - Show detailed output including error messages
+  - `-s, --strict` - Remove packages not listed in config (default: false)
+
+### Configuration File Format
+
+macType uses TypeScript for configuration, providing **IntelliSense and type checking**.
+
+By default, macType looks for your configuration at `~/.config/macType/config.ts`.
+
+**TypeScript Support**: After running `./init.sh`, TypeScript IntelliSense is automatically available in your config files. The initialization script:
+- Creates a `package.json` in `~/.config/macType/`
+- Links the `mactype` package for type definitions
+- Sets up `tsconfig.json` for optimal TypeScript support
+
+This means you get full autocomplete and type checking when editing `config.ts` in VS Code or any TypeScript-aware editor!
+
+```typescript
+import { Configuration } from 'mactype';
+
+const config: Configuration = {
+  // Homebrew packages and casks
+  brew: {
+    packages: [
+      'git',
+      'node',
+      'wget',
+    ],
+    casks: [
+      'visual-studio-code',
+      'google-chrome',
+    ],
+  },
+
+  // macOS system settings
+  macos: {
+    settings: [
+      {
+        domain: 'com.apple.dock',
+        key: 'autohide',
+        value: true,
+        type: 'bool',
+      },
+      {
+        domain: 'com.apple.dock',
+        key: 'tilesize',
+        value: 48,
+        type: 'int',
+      },
+    ],
+  },
+
+  // Config files (dotfiles)
+  files: {
+    files: [
+      {
+        source: './configs/zshrc.ts',
+        target: '~/.zshrc',
+        backup: true  // Create backup of existing file
+      },
+      {
+        source: './configs/vimrc.ts',
+        target: '~/.vimrc',
+        backup: true
+      }
+    ]
+  }
+};
+
+export default config;
+```
+
+### Managing Dotfiles with TypeScript
+
+You can write your dotfiles in TypeScript for better maintainability:
+
+```typescript
+// configs/zshrc.ts
+const zshrc = `
+# My .zshrc configuration
+export PATH="$HOME/bin:$PATH"
+
+# Aliases
+alias ll='ls -lah'
+alias gs='git status'
+
+# Load syntax highlighting
+if [ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+`;
+
+export default zshrc;
+```
+
+Or use a function for dynamic generation:
+
+```typescript
+// configs/gitconfig.ts
+export default function() {
+  const username = process.env.USER || 'unknown';
+
+  return `
+[user]
+  name = ${username}
+  email = ${username}@example.com
+
+[core]
+  editor = vim
+`;
+}
+```
+
+When you run `mactype apply`:
+1. TypeScript configs are compiled to plain text files
+2. Files are saved in `.generated/` directory
+3. Symlinks are created pointing to the generated files
+4. Existing files are backed up if `backup: true`
+
+### macOS Settings Types
+
+When configuring macOS settings, you can specify the type:
+
+- `bool` - Boolean values (true/false)
+- `int` - Integer numbers
+- `float` - Floating point numbers
+- `string` - Text values
+- `array` - Arrays of values
+- `dict` - Dictionary/object values
+
+If no type is specified, the framework will infer it from the value.
+
+## How It Works
+
+1. **Read Configuration**: Loads your desired state from the JSON config file
+2. **Read Current State**: Queries the system for current Homebrew packages and macOS settings
+3. **Generate Diff**: Compares desired vs current state and identifies changes needed
+4. **Apply Changes**: Only applies the necessary changes to reach the desired state
+
+### Package Management Modes
+
+#### Non-Strict Mode (Default)
+
+By default, macType only ensures the packages in your config are installed. It won't remove packages that aren't listed, allowing you to manage additional packages manually.
+
+This is ideal when you want macType to ensure certain packages are present without interfering with other tools or manual installations.
+
+#### Strict Mode
+
+When using the `--strict` flag, macType enforces an exact match - any packages or casks not in your config will be removed.
+
+This is useful for ensuring a completely reproducible environment or for CI/CD pipelines.
+
+### Example Output
+
+macType now features beautiful colored output with progress indicators:
+
+```
+╔═══════════════════════════════════╗
+║       macType Configuration       ║
+╚═══════════════════════════════════╝
+
+📋 Config loaded from: /Users/you/.config/macType/config.json
+
+🔍 Reading current system state...
+⚙️  Generating diff...
+
+╔═══════════════════════════════════╗
+║           CHANGES DIFF            ║
+╚═══════════════════════════════════╝
+
+📦 Homebrew Packages:
+  ✓ wget
+
+⚙️  macOS Settings:
+  ↻ com.apple.dock autohide: false → true
+  ✓ com.apple.dock tilesize = 48
+
+🚀 Applying changes...
+
+  ✓ Installed package: wget
+  ✓ Updated setting: com.apple.dock autohide = true
+  ✓ Added setting: com.apple.dock tilesize = 48
+
+╔═══════════════════════════════════╗
+║             SUMMARY               ║
+╚═══════════════════════════════════╝
+
+✓ Success: 3
+
+🎉 All changes applied successfully!
+```
+
+## Running Multiple Times
+
+The framework is designed to be idempotent. If you run it multiple times with the same configuration:
+
+1. **First run**: Will install packages and configure settings as needed
+2. **Second run**: Will detect no changes needed and exit quickly
+
+This makes it safe to run repeatedly and perfect for automation or setup scripts.
+
+## Programmatic Usage
+
+You can also use macType programmatically in your TypeScript code:
+
+```typescript
+import { MacType } from './mactype';
+
+const mactype = new MacType();
+
+await mactype.run('~/.config/macType/config.ts', {
+  dryRun: false,
+  verbose: true,
+  strict: false
+});
+```
+
+## Common macOS Settings
+
+Here are some useful macOS settings you can configure:
+
+### Dock
+- `com.apple.dock autohide` - Auto-hide the Dock
+- `com.apple.dock tilesize` - Icon size (16-128)
+- `com.apple.dock minimize-to-application` - Minimize windows into app icon
+
+### Finder
+- `com.apple.finder ShowPathbar` - Show path bar
+- `com.apple.finder ShowStatusBar` - Show status bar
+- `NSGlobalDomain AppleShowAllExtensions` - Show all file extensions
+
+### Screenshots
+- `com.apple.screencapture location` - Screenshot save location
+- `com.apple.screencapture type` - Screenshot format (png, jpg, etc.)
+
+### Trackpad
+- `com.apple.AppleMultitouchTrackpad Clicking` - Tap to click
+- `com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag` - Three finger drag
+
+## Requirements
+
+- macOS
+- Homebrew (automatically installed by `init.sh`)
+- Node.js 22+ (automatically installed via nvm by `init.sh`)
+
+## Troubleshooting
+
+### macOS Settings Not Applying
+
+Some settings require restarting the affected application or logging out. For example, Dock settings:
+
+```bash
+killall Dock
+```
+
+For Finder settings:
+
+```bash
+killall Finder
+```
+
+### Finding macOS Settings
+
+To discover available settings:
+
+```bash
+# List all settings for a domain
+defaults read com.apple.dock
+
+# Read a specific setting
+defaults read com.apple.dock autohide
+
+# Find domains containing "dock"
+defaults domains | tr ',' '\n' | grep -i dock
+```
+
+### Permission Issues
+
+Some operations may require administrator privileges. Ensure you have the necessary permissions or run with `sudo` if needed.
+
+## License
+
+MIT
