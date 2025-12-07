@@ -115,11 +115,37 @@ export interface ConfigFile {
 }
 
 /**
+ * Git configuration setting
+ * @example
+ * {
+ *   scope: 'global',
+ *   key: 'user.name',
+ *   value: 'John Doe'
+ * }
+ */
+export interface GitSetting {
+  /** Configuration scope: 'global', 'system', or 'local' */
+  scope: 'global' | 'system' | 'local';
+  /** The git config key (e.g., 'user.name', 'core.editor') */
+  key: string;
+  /** The value to set */
+  value: string;
+}
+
+/**
  * Files configuration
  */
 export interface FilesConfiguration {
   /** List of config files to generate and symlink */
   files?: ConfigFile[];
+}
+
+/**
+ * Git configuration
+ */
+export interface GitConfiguration {
+  /** List of git config settings to apply */
+  settings?: GitSetting[];
 }
 
 /**
@@ -150,6 +176,15 @@ export interface FilesConfiguration {
  *       }
  *     ]
  *   },
+ *   git: {
+ *     settings: [
+ *       {
+ *         scope: 'global',
+ *         key: 'user.name',
+ *         value: 'John Doe'
+ *       }
+ *     ]
+ *   },
  *   files: {
  *     files: [
  *       {
@@ -168,6 +203,8 @@ export interface Configuration {
   appstore?: AppStoreConfiguration;
   /** macOS system settings configuration */
   macos?: MacOSConfiguration;
+  /** Git configuration settings */
+  git?: GitConfiguration;
   /** Config files to generate and symlink */
   files?: FilesConfiguration;
 }
@@ -185,10 +222,15 @@ export interface MacOSState {
   settings: Map<string, any>;
 }
 
+export interface GitState {
+  settings: Map<string, string>;
+}
+
 export interface SystemState {
   brew: BrewState;
   appstore: AppStoreState;
   macos: MacOSState;
+  git: GitState;
   files: FileState;
 }
 
@@ -223,6 +265,14 @@ export interface MacOSSettingDiff {
   type?: string;
 }
 
+export interface GitSettingDiff {
+  action: DiffAction;
+  scope: 'global' | 'system' | 'local';
+  key: string;
+  currentValue?: string;
+  desiredValue?: string;
+}
+
 export interface FileDiff {
   action: DiffAction;
   source: string;
@@ -245,6 +295,9 @@ export interface Diff {
   };
   macos: {
     settings: MacOSSettingDiff[];
+  };
+  git: {
+    settings: GitSettingDiff[];
   };
   files: {
     files: FileDiff[];

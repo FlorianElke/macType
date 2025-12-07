@@ -6,13 +6,14 @@ import {
   BrewCaskDiff,
   AppStoreAppDiff,
   MacOSSettingDiff,
+  GitSettingDiff,
   FileDiff,
   DiffAction,
   AppStoreApp
 } from './types';
 
 export class DiffEngine {
-  generateDiff(config: Configuration, currentState: SystemState, strict: boolean = false, generatedDir?: string): Diff {
+  generateDiff(config: Configuration, currentState: SystemState, strict: boolean = false, generatedDir?: string, previousSettings?: any[]): Diff {
     const brewPackageDiffs = this.diffBrewPackages(
       config.brew?.packages || [],
       currentState.brew.packages,
@@ -33,7 +34,13 @@ export class DiffEngine {
 
     const macosSettingDiffs = this.diffMacOSSettings(
       config.macos?.settings || [],
-      currentState.macos.settings
+      currentState.macos.settings,
+      previousSettings || []
+    );
+
+    const gitSettingDiffs = this.diffGitSettings(
+      config.git?.settings || [],
+      currentState.git.settings
     );
 
     const fileDiffs = this.diffFiles(
@@ -52,6 +59,9 @@ export class DiffEngine {
       },
       macos: {
         settings: macosSettingDiffs
+      },
+      git: {
+        settings: gitSettingDiffs
       },
       files: {
         files: fileDiffs
@@ -176,12 +186,16 @@ export class DiffEngine {
 
   private diffMacOSSettings(
     desired: any[],
-    current: Map<string, any>
+    current: Map<string, any>,
+    previousSettings: any[] = []
   ): MacOSSettingDiff[] {
     const diffs: MacOSSettingDiff[] = [];
+    const desiredKeys = new Set<string>();
 
+    // Check all desired settings
     for (const setting of desired) {
       const key = `${setting.domain}:${setting.key}`;
+      desiredKeys.add(key);
       const currentValue = current.get(key);
 
       if (currentValue === undefined) {
@@ -209,6 +223,58 @@ export class DiffEngine {
           currentValue,
           desiredValue: setting.value,
           type: setting.type
+        });
+      }
+    }
+
+    // Check for removed settings (were in previous config but not in current)
+    for (const prevSetting of previousSettings) {
+      const key = `${prevSetting.domain}:${prevSetting.key}`;
+      if (!desiredKeys.has(key) && current.get(key) !== undefined) {
+        diffs.push({
+          action: 'remove',
+          domain: prevSetting.domain,
+          key: prevSetting.key,
+          currentValue: current.get(key)
+        });
+      }
+    }
+
+    return diffs;
+  }
+
+  private diffGitSettings(
+    desired: any[],
+    current: Map<string, string>
+  ): GitSettingDiff[] {
+    const diffs: GitSettingDiff[] = [];
+
+    for (const setting of desired) {
+      const key = `${setting.scope}.${setting.key}`;
+      const currentValue = current.get(key);
+
+      if (!currentValue || currentValue === '') {
+        diffs.push({
+          action: 'add',
+          scope: setting.scope,
+          key: setting.key,
+          desiredValue: setting.value
+        });
+      } else if (currentValue !== setting.value) {
+        diffs.push({
+          action: 'update',
+          scope: setting.scope,
+          key: setting.key,
+          currentValue,
+          desiredValue: setting.value
+        });
+      } else {
+        diffs.push({
+          action: 'none',
+          scope: setting.scope,
+          key: setting.key,
+          currentValue,
+          desiredValue: setting.value
         });
       }
     }
@@ -302,8 +368,9 @@ export class DiffEngine {
     const hasBrewCaskChanges = diff.brew.casks.some(d => d.action !== 'none');
     const hasAppStoreChanges = diff.appstore.apps.some(d => d.action !== 'none');
     const hasMacOSChanges = diff.macos.settings.some(d => d.action !== 'none');
+    const hasGitChanges = diff.git.settings.some(d => d.action !== 'none');
     const hasFileChanges = diff.files.files.some(d => d.action !== 'none');
 
-    return hasBrewPackageChanges || hasBrewCaskChanges || hasAppStoreChanges || hasMacOSChanges || hasFileChanges;
+    return hasBrewPackageChanges || hasBrewCaskChanges || hasAppStoreChanges || hasMacOSChanges || hasGitChanges || hasFileChanges;
   }
 }

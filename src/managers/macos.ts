@@ -44,9 +44,11 @@ const DOMAIN_TO_PROCESS: Record<string, string> = {
 
 export class MacOSManager {
   private processesToRestart = new Set<string>();
-  async getCurrentState(settings: MacOSSetting[]): Promise<MacOSState> {
+
+  async getCurrentState(settings: MacOSSetting[], previousSettings: any[] = []): Promise<MacOSState> {
     const state = new Map<string, any>();
 
+    // Read current config settings
     for (const setting of settings) {
       const key = `${setting.domain}:${setting.key}`;
       try {
@@ -56,6 +58,22 @@ export class MacOSManager {
         }
       } catch (error) {
         state.set(key, undefined);
+      }
+    }
+
+    // Also read previous settings to detect removed ones
+    for (const prevSetting of previousSettings) {
+      const key = `${prevSetting.domain}:${prevSetting.key}`;
+      // Only read if not already in current settings
+      if (!state.has(key)) {
+        try {
+          const { stdout } = await runCommandSafe(`defaults read ${prevSetting.domain} ${prevSetting.key}`);
+          if (stdout) {
+            state.set(key, this.parseDefaultsOutput(stdout.trim()));
+          }
+        } catch (error) {
+          state.set(key, undefined);
+        }
       }
     }
 
@@ -104,7 +122,7 @@ export class MacOSManager {
 
     switch (inferredType) {
       case 'bool':
-        return value ? '1' : '0';
+        return value ? 'true' : 'false';
       case 'int':
       case 'float':
         return value.toString();
@@ -132,6 +150,13 @@ export class MacOSManager {
     if (action === 'remove') {
       try {
         await runCommand(`defaults delete ${domain} ${key}`);
+
+        // Track which process needs to be restarted
+        const processToRestart = DOMAIN_TO_PROCESS[domain];
+        if (processToRestart) {
+          this.processesToRestart.add(processToRestart);
+        }
+
         return {
           success: true,
           message: `Deleted setting: ${domain} ${key}`

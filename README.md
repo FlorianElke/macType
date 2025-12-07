@@ -27,6 +27,7 @@ mactype apply
 
 - **TypeScript Configuration**: Use TypeScript config files with full IntelliSense and type checking
 - **Config File Management**: Manage all your dotfiles (zshrc, vimrc, etc.) in TypeScript with automatic generation and symlinking
+- **Git Configuration**: Manage Git settings globally, per-system, or per-repository with type-safe helpers
 - **Declarative Configuration**: Define your desired system state in a configuration file
 - **Idempotent Operations**: Running the same configuration multiple times is safe - only applies necessary changes
 - **Beautiful Output**: Colored terminal output with progress indicators and clear summaries
@@ -35,7 +36,7 @@ mactype apply
 - **Strict Mode**: Optionally enforce exact package lists (remove unlisted packages)
 - **Homebrew Integration**: Manage both packages and casks
 - **Mac App Store Integration**: Install and manage App Store applications using `mas` CLI
-- **macOS Settings**: Configure system preferences via the `defaults` command
+- **macOS Settings**: Configure system preferences via the `defaults` command with automatic process restarts
 - **Global Binary**: Install once, use anywhere with `mactype` command
 
 ## Installation
@@ -384,6 +385,66 @@ When configuring macOS settings, you can specify the type:
 - `dict` - Dictionary/object values
 
 If no type is specified, the framework will infer it from the value.
+
+### Git Configuration
+
+macType can manage your Git configuration settings globally, per-system, or per-repository.
+
+**Common Git Settings:**
+
+```typescript
+git: {
+  settings: [
+    // User identity
+    { scope: 'global', key: 'user.name', value: 'Your Name' },
+    { scope: 'global', key: 'user.email', value: 'your@email.com' },
+    
+    // Default editor
+    { scope: 'global', key: 'core.editor', value: 'code --wait' },
+    
+    // Behavior
+    { scope: 'global', key: 'pull.rebase', value: 'true' },
+    { scope: 'global', key: 'push.default', value: 'current' },
+    { scope: 'global', key: 'init.defaultBranch', value: 'main' },
+    
+    // Aliases
+    { scope: 'global', key: 'alias.co', value: 'checkout' },
+    { scope: 'global', key: 'alias.st', value: 'status' },
+  ]
+}
+```
+
+**Using Type-Safe Helpers:**
+
+```typescript
+import { userSetting, coreSetting, aliasSetting, commonAliases, modernGitSettings } from './src/managers/git-helpers';
+
+git: {
+  settings: [
+    // Individual settings with IntelliSense
+    userSetting('name', 'Your Name'),
+    userSetting('email', 'your@email.com'),
+    coreSetting('editor', 'code --wait'),
+    aliasSetting('co', 'checkout'),
+    
+    // Or use presets
+    ...modernGitSettings,
+    ...commonAliases,
+  ]
+}
+```
+
+**Scopes:**
+- `global` - User-level configuration (`~/.gitconfig`)
+- `system` - System-level configuration (`/etc/gitconfig`)
+- `local` - Repository-level configuration (`.git/config`)
+
+**View Current Settings:**
+```bash
+git config --global --list
+git config --system --list
+git config --local --list
+```
 
 ## How It Works
 

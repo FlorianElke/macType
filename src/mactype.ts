@@ -1,9 +1,10 @@
-import { readFileSync } from 'fs';
-import { dirname } from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { dirname, join } from 'path';
 import chalk from 'chalk';
 import { BrewManager } from './managers/brew';
 import { AppStoreManager } from './managers/appstore';
 import { MacOSManager } from './managers/macos';
+import { GitManager } from './managers/git';
 import { FileManager } from './managers/files';
 import { DiffEngine } from './diff';
 import { Configuration, Diff, ApplyResult } from './types';
@@ -18,6 +19,7 @@ export class MacType {
   private brewManager: BrewManager;
   private appstoreManager: AppStoreManager;
   private macosManager: MacOSManager;
+  private gitManager: GitManager;
   private fileManager?: FileManager;
   private diffEngine: DiffEngine;
 
@@ -25,7 +27,45 @@ export class MacType {
     this.brewManager = new BrewManager();
     this.appstoreManager = new AppStoreManager();
     this.macosManager = new MacOSManager();
+    this.gitManager = new GitManager();
     this.diffEngine = new DiffEngine();
+  }
+
+  private getStateFilePath(): string {
+    const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+    return join(homeDir, '.config', 'macType', '.state.json');
+  }
+
+  private loadPreviousState(): any {
+    const stateFile = this.getStateFilePath();
+    if (existsSync(stateFile)) {
+      try {
+        const content = readFileSync(stateFile, 'utf-8');
+        return JSON.parse(content);
+      } catch (e) {
+        return { macos: { settings: [] } };
+      }
+    }
+    return { macos: { settings: [] } };
+  }
+
+  private saveCurrentState(config: Configuration): void {
+    const stateFile = this.getStateFilePath();
+    const state = {
+      macos: {
+        settings: (config.macos?.settings || []).map(s => ({
+          domain: s.domain,
+          key: s.key
+        }))
+      }
+    };
+
+    const dir = dirname(stateFile);
+    if (!existsSync(dir)) {
+      require('fs').mkdirSync(dir, { recursive: true });
+    }
+
+    writeFileSync(stateFile, JSON.stringify(state, null, 2), 'utf-8');
   }
 
   async loadConfig(configPath: string): Promise<Configuration> {
@@ -76,20 +116,32 @@ export class MacType {
     this.fileManager = new FileManager(configDir);
 
     console.log(chalk.blue('\n🔍 Reading current system state...'));
+    const previousState = this.loadPreviousState();
     const brewState = await this.brewManager.getCurrentState();
     const appstoreState = await this.appstoreManager.getCurrentState();
-    const macosState = await this.macosManager.getCurrentState(config.macos?.settings || []);
+    const macosState = await this.macosManager.getCurrentState(
+      config.macos?.settings || [],
+      previousState.macos?.settings || []
+    );
+    const gitState = await this.gitManager.getCurrentState(config.git?.settings || []);
     const fileState = await this.fileManager.getCurrentState(config.files?.files || []);
 
     const currentState = {
       brew: brewState,
       appstore: appstoreState,
       macos: macosState,
+      git: gitState,
       files: fileState
     };
 
     console.log(chalk.blue('⚙️  Generating diff...'));
-    const diff = this.diffEngine.generateDiff(config, currentState, options.strict === true, this.fileManager['generatedDir']);
+    const diff = this.diffEngine.generateDiff(
+      config,
+      currentState,
+      options.strict === true,
+      this.fileManager['generatedDir'],
+      previousState.macos?.settings || []
+    );
 
     this.printDiff(diff, configPath);
 
@@ -105,6 +157,13 @@ export class MacType {
 
     console.log(chalk.blue('\n🚀 Applying changes...\n'));
     await this.applyDiff(diff, options, configDir);
+
+    // Save current state for next run
+    if (!options.dryRun) {
+      this.saveCurrentState(config);
+    }
+
+    console.log(chalk.green.bold('\n✓ System configuration complete!'));
   }
 
   private printDiff(diff: Diff, configPath: string): void {
@@ -149,8 +208,26 @@ export class MacType {
         if (setting.action === 'update') {
           const line = `${this.getActionSymbol(setting.action)} ${chalk.cyan(setting.domain)} ${chalk.dim(setting.key)}: ${chalk.red(setting.currentValue)} ${chalk.dim('→')} ${chalk.green(setting.desiredValue)}`;
           console.log(`  ${line}`);
+        } else if (setting.action === 'remove') {
+          const line = `${this.getActionSymbol(setting.action)} ${chalk.cyan(setting.domain)} ${chalk.dim(setting.key)} ${chalk.dim('(reset to default)')}`;
+          console.log(`  ${line}`);
         } else {
           const line = `${this.getActionSymbol(setting.action)} ${chalk.cyan(setting.domain)} ${chalk.dim(setting.key)} ${chalk.dim('=')} ${chalk.green(setting.desiredValue)}`;
+          console.log(`  ${line}`);
+        }
+      }
+      console.log();
+    }
+
+    const gitChanges = diff.git.settings.filter(d => d.action !== 'none');
+    if (gitChanges.length > 0) {
+      console.log(chalk.bold.magenta('🔧 Git Configuration:'));
+      for (const setting of gitChanges) {
+        if (setting.action === 'update') {
+          const line = `${this.getActionSymbol(setting.action)} ${chalk.cyan(setting.scope)} ${chalk.dim(setting.key)}: ${chalk.red(setting.currentValue)} ${chalk.dim('→')} ${chalk.green(setting.desiredValue)}`;
+          console.log(`  ${line}`);
+        } else {
+          const line = `${this.getActionSymbol(setting.action)} ${chalk.cyan(setting.scope)} ${chalk.dim(setting.key)} ${chalk.dim('=')} ${chalk.green(setting.desiredValue)}`;
           console.log(`  ${line}`);
         }
       }
@@ -244,6 +321,14 @@ export class MacType {
 
     // Restart affected processes after all macOS settings have been applied
     await this.macosManager.restartProcesses();
+
+    for (const gitDiff of diff.git.settings) {
+      if (gitDiff.action !== 'none') {
+        const result = await this.gitManager.applySettingDiff(gitDiff);
+        results.push(result);
+        this.printResult(result, options.verbose);
+      }
+    }
 
     if (this.fileManager) {
       for (const fileDiff of diff.files.files) {

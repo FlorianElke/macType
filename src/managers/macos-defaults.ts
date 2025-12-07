@@ -4,6 +4,25 @@
  */
 
 // ============================================================================
+// DOMAIN TYPES
+// ============================================================================
+
+export type MacOSDomain =
+  | 'com.apple.dock'
+  | 'com.apple.finder'
+  | 'com.apple.screencapture'
+  | 'com.apple.menuextra.clock'
+  | 'com.apple.Safari'
+  | 'com.apple.ActivityMonitor'
+  | 'com.apple.TextEdit'
+  | 'com.apple.MobileSMS'
+  | 'com.apple.iphonesimulator'
+  | 'com.apple.dt.Xcode'
+  | 'com.apple.TimeMachine'
+  | 'com.apple.AppleMultitouchTrackpad'
+  | 'NSGlobalDomain';
+
+// ============================================================================
 // DOCK SETTINGS
 // ============================================================================
 
@@ -318,7 +337,7 @@ export interface SimulatorSettings {
  */
 export function dockSetting<K extends keyof DockSettings>(
   key: K,
-  value: DockSettings[K]
+  value: NonNullable<DockSettings[K]>
 ) {
   return {
     domain: 'com.apple.dock',
@@ -550,3 +569,47 @@ export function globalSetting<K extends keyof MiscSettings>(
     value,
   };
 }
+
+// ============================================================================
+// UNIFIED MACOS HELPER WITH DOMAIN AUTOCOMPLETE
+// ============================================================================
+
+/**
+ * Create a macOS setting with full IntelliSense support for domains
+ * 
+ * @example
+ * macosSetting('com.apple.dock', 'autohide', true, 'bool')
+ * macosSetting('com.apple.finder', 'ShowPathbar', true, 'bool')
+ */
+export function macosSetting(
+  domain: MacOSDomain,
+  key: string,
+  value: string | number | boolean | string[] | Record<string, any>,
+  type?: 'string' | 'int' | 'float' | 'bool' | 'array' | 'dict'
+) {
+  return {
+    domain,
+    key,
+    value,
+    type,
+  };
+}
+
+/**
+ * All available macOS domains for reference
+ */
+export const MACOS_DOMAINS = {
+  DOCK: 'com.apple.dock' as const,
+  FINDER: 'com.apple.finder' as const,
+  SCREENSHOT: 'com.apple.screencapture' as const,
+  MENUBAR_CLOCK: 'com.apple.menuextra.clock' as const,
+  SAFARI: 'com.apple.Safari' as const,
+  ACTIVITY_MONITOR: 'com.apple.ActivityMonitor' as const,
+  TEXTEDIT: 'com.apple.TextEdit' as const,
+  MESSAGES: 'com.apple.MobileSMS' as const,
+  SIMULATOR: 'com.apple.iphonesimulator' as const,
+  XCODE: 'com.apple.dt.Xcode' as const,
+  TIME_MACHINE: 'com.apple.TimeMachine' as const,
+  TRACKPAD: 'com.apple.AppleMultitouchTrackpad' as const,
+  GLOBAL: 'NSGlobalDomain' as const,
+};
