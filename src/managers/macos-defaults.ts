@@ -183,6 +183,9 @@ export interface MouseSettings {
 // ============================================================================
 
 export interface TrackpadSettings {
+  /** Enable tap to click */
+  TabToClicking?: boolean;
+
   /** Click weight/threshold: 0 (light), 1 (medium), 2 (firm) */
   FirstClickThreshold?: 0 | 1 | 2;
 
@@ -194,6 +197,12 @@ export interface TrackpadSettings {
 
   /** Enable three finger drag */
   TrackpadThreeFingerDrag?: boolean;
+
+  /** Two finger tap for right click */
+  TrackpadRightClick?: boolean;
+
+  /** Tracking speed (0-3, with 0 being slowest) */
+  TrackpadScaling?: number;
 }
 
 // ============================================================================
