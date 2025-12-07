@@ -94,6 +94,20 @@ export interface AppStoreConfiguration {
 export interface MacOSConfiguration {
   /** List of macOS defaults settings to apply */
   settings?: MacOSSetting[];
+  /** Dock apps configuration (requires dockutil: brew install dockutil) */
+  dockApps?: DockApp[];
+  /** Desktop wallpaper path (absolute or relative to config file) */
+  wallpaper?: string;
+}
+
+/**
+ * Dock app configuration
+ */
+export interface DockApp {
+  /** App name or path (e.g., 'Safari' or '/Applications/Safari.app') */
+  name: string;
+  /** Position in Dock (optional, 1-based index) */
+  position?: number;
 }
 
 /**
@@ -227,11 +241,16 @@ export interface GitState {
 }
 
 export interface SystemState {
-  brew: BrewState;
-  appstore: AppStoreState;
-  macos: MacOSState;
-  git: GitState;
-  files: FileState;
+  brew?: BrewState;
+  appstore?: AppStoreState;
+  macos?: MacOSState;
+  git?: GitState;
+  files?: FileState;
+  wallpaper?: WallpaperState;
+}
+
+export interface WallpaperState {
+  path: string;
 }
 
 export type DiffAction = 'add' | 'remove' | 'update' | 'none';
@@ -273,6 +292,12 @@ export interface GitSettingDiff {
   desiredValue?: string;
 }
 
+export interface WallpaperDiff {
+  action: 'set';
+  from: string | null;
+  to: string;
+}
+
 export interface FileDiff {
   action: DiffAction;
   source: string;
@@ -302,6 +327,7 @@ export interface Diff {
   files: {
     files: FileDiff[];
   };
+  wallpaper?: WallpaperDiff;
 }
 
 export interface ApplyResult {

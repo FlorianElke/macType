@@ -46,30 +46,37 @@ export class FileManager {
       throw new Error(`Source file not found: ${absoluteSource}`);
     }
 
-    // Register ts-node if not already registered
-    try {
-      require('ts-node/register');
-    } catch (e) {
-      // ts-node might already be registered
-    }
+    // If it's a TypeScript file, compile it
+    if (absoluteSource.endsWith('.ts')) {
+      // Register ts-node if not already registered
+      try {
+        require('ts-node/register');
+      } catch (e) {
+        // ts-node might already be registered
+      }
 
-    // Clear the require cache to ensure fresh load
-    delete require.cache[absoluteSource];
+      // Clear the require cache to ensure fresh load
+      delete require.cache[absoluteSource];
 
-    // Load the TypeScript/JavaScript module
-    const module = require(absoluteSource);
+      // Load the TypeScript/JavaScript module
+      const module = require(absoluteSource);
 
-    // Support both default export and named export
-    const content = module.default || module.content || module;
+      // Support both default export and named export
+      const content = module.default || module.content || module;
 
-    if (typeof content === 'function') {
-      // If it's a function, call it to get the content
-      return await content();
-    } else if (typeof content === 'string') {
-      // If it's a string, use it directly
-      return content;
+      if (typeof content === 'function') {
+        // If it's a function, call it to get the content
+        return await content();
+      } else if (typeof content === 'string') {
+        // If it's a string, use it directly
+        return content;
+      } else {
+        throw new Error(`Config file ${sourcePath} must export a string or function that returns a string`);
+      }
     } else {
-      throw new Error(`Config file ${sourcePath} must export a string or function that returns a string`);
+      // For non-TypeScript files, just read them directly
+      const { readFileSync } = require('fs');
+      return readFileSync(absoluteSource, 'utf-8');
     }
   }
 

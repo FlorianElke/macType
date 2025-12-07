@@ -77,6 +77,17 @@ fi
 
 echo ""
 
+# Install dockutil for Dock management
+if ! command -v dockutil &> /dev/null; then
+    echo -e "${YELLOW}dockutil not found. Installing dockutil for Dock management...${NC}"
+    brew install dockutil
+    echo -e "${GREEN}✓ dockutil installed successfully${NC}"
+else
+    echo -e "${GREEN}✓ dockutil is already installed${NC}"
+fi
+
+echo ""
+
 # Check and install nvm
 if [ ! -d "$HOME/.nvm" ]; then
     echo -e "${YELLOW}nvm not found. Installing nvm...${NC}"
@@ -94,6 +105,23 @@ else
 fi
 
 echo ""
+
+# Install dockutil if not already installed
+if ! command -v dockutil &> /dev/null; then
+    if command -v brew &> /dev/null; then
+        echo "📦 Installing dockutil for Dock management..."
+        brew install dockutil
+    else
+        echo "⚠️  Warning: Homebrew not found. Skipping dockutil installation."
+        echo "   Install Homebrew first: https://brew.sh"
+        echo "   Then run: brew install dockutil"
+    fi
+else
+    echo "✓ dockutil already installed"
+fi
+
+echo ""
+
 
 # Check and install Node.js 22
 echo -e "${BLUE}Checking Node.js version...${NC}"

@@ -81,7 +81,55 @@ const config: Configuration = {
       // dockSetting('autohide-delay', 0),
       // dockSetting('autohide-time-modifier', 0.5),
     ],
-  },
-};
 
-export default config;
+    /**
+     * Desktop Wallpaper
+     * Provide absolute or relative path to image file
+     * Supports: .jpg, .jpeg, .png, .heic, etc.
+     * 
+     * Examples:
+     *   wallpaper: '/System/Library/Desktop Pictures/Sonoma.heic'
+     *   wallpaper: './wallpapers/my-wallpaper.jpg'
+     *   wallpaper: '~/Pictures/wallpaper.png'
+     */
+    // wallpaper: '/System/Library/Desktop Pictures/Sonoma.heic',
+
+    /**
+     * Dock Apps - Specify which apps should appear in the Dock
+     * Requires dockutil: brew install dockutil
+     * 
+     * Apps will be set to exactly this list (removes apps not in the list)
+     */
+    dockApps: [
+      // { name: 'Safari' },
+      // { name: 'Mail' },
+      // { name: 'Calendar' },
+      // { name: 'Messages' },
+      // { name: 'Visual Studio Code', position: 1 },
+      // { name: '/Applications/Google Chrome.app' },  // Full path also works
+    ],
+    // dockSetting('autohide-delay', 0),
+    // dockSetting('autohide-time-modifier', 0.5),
+    /**
+     * Config files to manage
+     *
+     * Files can be:
+     * - Plain text files (just copied and symlinked)
+     * - TypeScript files (.ts) that export content (compiled then symlinked)
+     *
+     * Examples:
+     *   Plain file: { source: './configs/zshrc', target: '~/.zshrc' }
+     *   TS file:    { source: './configs/custom.ts', target: '~/.custom' }
+     */
+    files: {
+      files: [
+        // Example: Symlink zshrc from configs folder
+        // { source: './configs/zshrc', target: '~/.zshrc', backup: true },
+
+        // Example: TypeScript template (exports string)
+        // { source: './configs/gitconfig.ts', target: '~/.gitconfig' },
+      ],
+    },
+  };
+
+  export default config;

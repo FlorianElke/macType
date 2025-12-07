@@ -6,6 +6,8 @@ import { AppStoreManager } from './managers/appstore';
 import { MacOSManager } from './managers/macos';
 import { GitManager } from './managers/git';
 import { FileManager } from './managers/files';
+import { DockManager } from './managers/dock';
+import { WallpaperManager } from './managers/wallpaper';
 import { DiffEngine } from './diff';
 import { Configuration, Diff, ApplyResult } from './types';
 
@@ -20,6 +22,8 @@ export class MacType {
   private appstoreManager: AppStoreManager;
   private macosManager: MacOSManager;
   private gitManager: GitManager;
+  private dockManager: DockManager;
+  private wallpaperManager: WallpaperManager;
   private fileManager?: FileManager;
   private diffEngine: DiffEngine;
 
@@ -28,6 +32,8 @@ export class MacType {
     this.appstoreManager = new AppStoreManager();
     this.macosManager = new MacOSManager();
     this.gitManager = new GitManager();
+    this.dockManager = new DockManager();
+    this.wallpaperManager = new WallpaperManager();
     this.diffEngine = new DiffEngine();
   }
 
@@ -133,13 +139,15 @@ export class MacType {
     );
     const gitState = await this.gitManager.getCurrentState(config.git?.settings || []);
     const fileState = await this.fileManager.getCurrentState(config.files?.files || []);
+    const wallpaperState = this.wallpaperManager.getCurrentState();
 
     const currentState = {
       brew: brewState,
       appstore: appstoreState,
       macos: macosState,
       git: gitState,
-      files: fileState
+      files: fileState,
+      wallpaper: wallpaperState || undefined
     };
 
     console.log(chalk.blue('⚙️  Generating diff...'));
@@ -151,7 +159,7 @@ export class MacType {
       previousState.macos?.settings || []
     );
 
-    this.printDiff(diff, configPath);
+    this.printDiff(diff, config, configPath);
 
     if (!this.diffEngine.hasDifferences(diff)) {
       console.log(chalk.green('\n✓ No changes needed. System is already in desired state.'));
@@ -164,7 +172,7 @@ export class MacType {
     }
 
     console.log(chalk.blue('\n🚀 Applying changes...\n'));
-    await this.applyDiff(diff, options, configDir);
+    await this.applyDiff(diff, config, options, configDir);
 
     // Save current state for next run
     if (!options.dryRun) {
@@ -174,7 +182,7 @@ export class MacType {
     console.log(chalk.green.bold('\n✓ System configuration complete!'));
   }
 
-  private printDiff(diff: Diff, configPath: string): void {
+  private printDiff(diff: Diff, config: Configuration, configPath: string): void {
     console.log(chalk.bold.yellow('\n╔═══════════════════════════════════╗'));
     console.log(chalk.bold.yellow('║           CHANGES DIFF            ║'));
     console.log(chalk.bold.yellow('╚═══════════════════════════════════╝\n'));
@@ -223,6 +231,27 @@ export class MacType {
           const line = `${this.getActionSymbol(setting.action)} ${chalk.cyan(setting.domain)} ${chalk.dim(setting.key)} ${chalk.dim('=')} ${chalk.green(setting.desiredValue)}`;
           console.log(`  ${line}`);
         }
+      }
+      console.log();
+    }
+
+    // Show Dock apps if configured
+    if (config.macos?.dockApps && config.macos.dockApps.length > 0) {
+      console.log(chalk.bold.magenta('🎯 Dock Apps:'));
+      for (const app of config.macos.dockApps) {
+        const position = app.position ? chalk.dim(` [position ${app.position}]`) : '';
+        console.log(`  ${chalk.green('+')} ${chalk.cyan(app.name)}${position}`);
+      }
+      console.log();
+    }
+
+    // Show wallpaper if configured
+    if (diff.wallpaper) {
+      console.log(chalk.bold.magenta('🖼️  Desktop Wallpaper:'));
+      if (diff.wallpaper.from) {
+        console.log(`  ${this.getActionSymbol('update')} ${chalk.red(diff.wallpaper.from)} ${chalk.dim('→')} ${chalk.green(diff.wallpaper.to)}`);
+      } else {
+        console.log(`  ${this.getActionSymbol('add')} ${chalk.green(diff.wallpaper.to)}`);
       }
       console.log();
     }
@@ -288,7 +317,7 @@ export class MacType {
     }
   }
 
-  private async applyDiff(diff: Diff, options: MacTypeOptions, configDir: string): Promise<void> {
+  private async applyDiff(diff: Diff, config: Configuration, options: MacTypeOptions, configDir: string): Promise<void> {
     const results: ApplyResult[] = [];
 
     for (const pkgDiff of diff.brew.packages) {
@@ -329,6 +358,39 @@ export class MacType {
 
     // Restart affected processes after all macOS settings have been applied
     await this.macosManager.restartProcesses();
+
+    // Apply Dock apps if configured
+    if (config.macos?.dockApps && config.macos.dockApps.length > 0) {
+      const dockResults = await this.dockManager.setApps(config.macos.dockApps);
+      for (const result of dockResults) {
+        results.push(result);
+        this.printResult(result, options.verbose);
+      }
+    }
+
+    // Apply wallpaper if changed
+    if (diff.wallpaper) {
+      try {
+        this.wallpaperManager.setWallpaper(diff.wallpaper.to);
+        results.push({
+          success: true,
+          message: `Set wallpaper to ${diff.wallpaper.to}`
+        });
+        this.printResult({
+          success: true,
+          message: `Set wallpaper to ${diff.wallpaper.to}`
+        }, options.verbose);
+      } catch (error: any) {
+        results.push({
+          success: false,
+          message: `Failed to set wallpaper: ${error.message}`
+        });
+        this.printResult({
+          success: false,
+          message: `Failed to set wallpaper: ${error.message}`
+        }, options.verbose);
+      }
+    }
 
     for (const gitDiff of diff.git.settings) {
       if (gitDiff.action !== 'none') {

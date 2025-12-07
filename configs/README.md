@@ -1,23 +1,22 @@
 # Config Files
 
-This directory contains TypeScript files that generate configuration files for your system.
+This directory contains configuration files for your system.
 
 ## How it works
 
-1. Write your config files in TypeScript (e.g., `zshrc.ts`)
-2. Export a string (or a function that returns a string)
-3. macType will generate the actual file and symlink it to the target location
+Files in this directory can be:
 
-## Example
+1. **Plain text files** - Just copied/symlinked directly (e.g., `zshrc`, `gitconfig`)
+2. **TypeScript templates** - Files ending in `.ts` that export content dynamically
 
-```typescript
-// configs/zshrc.ts
-const zshrc = `
-# My .zshrc configuration
+macType will symlink these files to their target locations on your system.
+
+## Plain Files Example
+
+```bash
+# configs/zshrc
 export PATH="$HOME/bin:$PATH"
-`;
-
-export default zshrc;
+alias ll='ls -lah'
 ```
 
 Then in `config.ts`:
@@ -26,8 +25,27 @@ Then in `config.ts`:
 files: {
   files: [
     {
-      source: './configs/zshrc.ts',
+      source: './configs/zshrc',
       target: '~/.zshrc',
+      backup: true  // Creates .backup of existing file
+    }
+  ]
+}
+```
+
+## TypeScript Templates Example
+
+For dynamic content, use `.ts` files:
+
+```typescript
+// configs/gitconfig.ts
+const gitconfig = `
+[user]
+  name = ${process.env.USER}
+`;
+
+export default gitconfig;
+```
       backup: true  // Creates a backup of existing file
     }
   ]

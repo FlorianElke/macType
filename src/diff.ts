@@ -16,37 +16,42 @@ export class DiffEngine {
   generateDiff(config: Configuration, currentState: SystemState, strict: boolean = false, generatedDir?: string, previousSettings?: any[]): Diff {
     const brewPackageDiffs = this.diffBrewPackages(
       config.brew?.packages || [],
-      currentState.brew.packages,
+      currentState.brew?.packages || new Map(),
       strict
     );
 
     const brewCaskDiffs = this.diffBrewCasks(
       config.brew?.casks || [],
-      currentState.brew.casks,
+      currentState.brew?.casks || new Map(),
       strict
     );
 
     const appstoreAppDiffs = this.diffAppStoreApps(
       config.appstore?.apps || [],
-      currentState.appstore.apps,
+      currentState.appstore?.apps || new Map(),
       strict
     );
 
     const macosSettingDiffs = this.diffMacOSSettings(
       config.macos?.settings || [],
-      currentState.macos.settings,
+      currentState.macos?.settings || new Map(),
       previousSettings || []
     );
 
     const gitSettingDiffs = this.diffGitSettings(
       config.git?.settings || [],
-      currentState.git.settings
+      currentState.git?.settings || new Map()
     );
 
     const fileDiffs = this.diffFiles(
       config.files?.files || [],
-      currentState.files.symlinks,
+      currentState.files?.symlinks || new Map(),
       generatedDir
+    );
+
+    const wallpaperDiff = this.diffWallpaper(
+      config.macos?.wallpaper,
+      currentState.wallpaper?.path
     );
 
     return {
@@ -65,7 +70,8 @@ export class DiffEngine {
       },
       files: {
         files: fileDiffs
-      }
+      },
+      wallpaper: wallpaperDiff
     };
   }
 
@@ -363,14 +369,39 @@ export class DiffEngine {
     return diffs;
   }
 
+  private diffWallpaper(
+    desired: string | undefined,
+    current: string | undefined
+  ): { action: 'set'; from: string | null; to: string } | undefined {
+    if (!desired) {
+      return undefined;
+    }
+
+    // Normalize paths for comparison
+    const normalizePath = (p: string | undefined) => p ? require('path').resolve(p) : null;
+    const desiredPath = normalizePath(desired);
+    const currentPath = normalizePath(current);
+
+    if (desiredPath !== currentPath) {
+      return {
+        action: 'set',
+        from: currentPath,
+        to: desired
+      };
+    }
+
+    return undefined;
+  }
+
   hasDifferences(diff: Diff): boolean {
     const hasBrewPackageChanges = diff.brew.packages.some(d => d.action !== 'none');
     const hasBrewCaskChanges = diff.brew.casks.some(d => d.action !== 'none');
     const hasAppStoreChanges = diff.appstore.apps.some(d => d.action !== 'none');
     const hasMacOSChanges = diff.macos.settings.some(d => d.action !== 'none');
     const hasGitChanges = diff.git.settings.some(d => d.action !== 'none');
+    const hasWallpaperChanges = !!diff.wallpaper;
     const hasFileChanges = diff.files.files.some(d => d.action !== 'none');
 
-    return hasBrewPackageChanges || hasBrewCaskChanges || hasAppStoreChanges || hasMacOSChanges || hasGitChanges || hasFileChanges;
+    return hasBrewPackageChanges || hasBrewCaskChanges || hasAppStoreChanges || hasMacOSChanges || hasGitChanges || hasWallpaperChanges || hasFileChanges;
   }
 }

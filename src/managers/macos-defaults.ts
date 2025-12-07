@@ -56,6 +56,13 @@ export interface DockSettings {
 
   /** Rearrange Spaces automatically (Mission Control) */
   'mru-spaces'?: boolean;
+
+  /** 
+   * Persistent apps in Dock (complex array structure)
+   * Note: Use dockutil command-line tool for easier management
+   * Example: ['Safari', 'Mail', 'Calendar']
+   */
+  'persistent-apps'?: any[];
 }
 
 // ============================================================================
@@ -183,7 +190,8 @@ export interface MouseSettings {
 // ============================================================================
 
 export interface TrackpadSettings {
-
+  /** Enable tap to click */
+  TapToClick?: boolean;
 
   /** Click weight/threshold: 0 (light), 1 (medium), 2 (firm) */
   FirstClickThreshold?: 0 | 1 | 2;

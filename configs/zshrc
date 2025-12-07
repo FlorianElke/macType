@@ -1,11 +1,3 @@
-/**
- * Example .zshrc configuration
- *
- * This file is written in TypeScript and will be compiled to a plain text file
- * that is symlinked to ~/.zshrc
- */
-
-const zshrc = `
 # macType Generated .zshrc
 # This file is managed by macType - changes will be overwritten
 
@@ -40,6 +32,3 @@ fi
 
 # Custom configuration
 # Add your custom shell configuration here
-`;
-
-export default zshrc;
