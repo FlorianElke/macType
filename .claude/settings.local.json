@@ -5,7 +5,9 @@
       "Bash(npm run build:*)",
       "mcp__ide__getDiagnostics",
       "Bash(npm link:*)",
-      "Bash(mactype diff:*)"
+      "Bash(mactype diff:*)",
+      "Bash(mactype apply:*)",
+      "Bash(mactype --help:*)"
     ],
     "deny": [],
     "ask": []

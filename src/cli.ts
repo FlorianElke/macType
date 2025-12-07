@@ -2,8 +2,10 @@
 
 import { Command } from 'commander';
 import { MacType } from './mactype';
+import { AppStoreManager } from './managers/appstore';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import chalk from 'chalk';
 
 const program = new Command();
 
@@ -88,6 +90,40 @@ program
       });
     } catch (error: any) {
       console.error('Error:', error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('search')
+  .description('Search for Mac App Store applications')
+  .argument('<query>', 'Search query (app name)')
+  .action(async (query: string) => {
+    try {
+      const appstoreManager = new AppStoreManager();
+
+      console.log(chalk.bold.cyan('\n📱 Searching App Store...\n'));
+
+      const results = await appstoreManager.search(query);
+
+      if (results.length === 0) {
+        console.log(chalk.yellow('No apps found matching your query.'));
+        return;
+      }
+
+      console.log(chalk.green(`Found ${results.length} app(s):\n`));
+
+      for (const app of results) {
+        console.log(chalk.bold(app.name));
+        console.log(chalk.dim(`  ID: ${app.id}`));
+        console.log(chalk.dim(`  Version: ${app.version}`));
+        console.log(chalk.cyan(`  Config: { id: ${app.id}, name: '${app.name}' }`));
+        console.log();
+      }
+
+      console.log(chalk.dim('💡 Copy the config line to your appstore.apps array'));
+    } catch (error: any) {
+      console.error(chalk.red('Error:'), error.message);
       process.exit(1);
     }
   });

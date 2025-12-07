@@ -4,9 +4,11 @@ import {
   Diff,
   BrewPackageDiff,
   BrewCaskDiff,
+  AppStoreAppDiff,
   MacOSSettingDiff,
   FileDiff,
-  DiffAction
+  DiffAction,
+  AppStoreApp
 } from './types';
 
 export class DiffEngine {
@@ -20,6 +22,12 @@ export class DiffEngine {
     const brewCaskDiffs = this.diffBrewCasks(
       config.brew?.casks || [],
       currentState.brew.casks,
+      strict
+    );
+
+    const appstoreAppDiffs = this.diffAppStoreApps(
+      config.appstore?.apps || [],
+      currentState.appstore.apps,
       strict
     );
 
@@ -38,6 +46,9 @@ export class DiffEngine {
       brew: {
         packages: brewPackageDiffs,
         casks: brewCaskDiffs
+      },
+      appstore: {
+        apps: appstoreAppDiffs
       },
       macos: {
         settings: macosSettingDiffs
@@ -116,6 +127,45 @@ export class DiffEngine {
             action: 'remove',
             name: cask,
             currentVersion: version
+          });
+        }
+      }
+    }
+
+    return diffs;
+  }
+
+  private diffAppStoreApps(
+    desired: AppStoreApp[],
+    current: Map<number, string>,
+    strict: boolean = false
+  ): AppStoreAppDiff[] {
+    const diffs: AppStoreAppDiff[] = [];
+    const desiredIds = new Set(desired.map(app => app.id));
+
+    for (const app of desired) {
+      if (!current.has(app.id)) {
+        diffs.push({
+          action: 'add',
+          id: app.id,
+          name: app.name
+        });
+      } else {
+        diffs.push({
+          action: 'none',
+          id: app.id,
+          name: app.name
+        });
+      }
+    }
+
+    if (strict) {
+      for (const [id, name] of current.entries()) {
+        if (!desiredIds.has(id)) {
+          diffs.push({
+            action: 'remove',
+            id,
+            name
           });
         }
       }
@@ -250,9 +300,10 @@ export class DiffEngine {
   hasDifferences(diff: Diff): boolean {
     const hasBrewPackageChanges = diff.brew.packages.some(d => d.action !== 'none');
     const hasBrewCaskChanges = diff.brew.casks.some(d => d.action !== 'none');
+    const hasAppStoreChanges = diff.appstore.apps.some(d => d.action !== 'none');
     const hasMacOSChanges = diff.macos.settings.some(d => d.action !== 'none');
     const hasFileChanges = diff.files.files.some(d => d.action !== 'none');
 
-    return hasBrewPackageChanges || hasBrewCaskChanges || hasMacOSChanges || hasFileChanges;
+    return hasBrewPackageChanges || hasBrewCaskChanges || hasAppStoreChanges || hasMacOSChanges || hasFileChanges;
   }
 }

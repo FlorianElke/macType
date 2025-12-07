@@ -1,7 +1,12 @@
-import { runCommand, runCommandSafe } from '../utils/exec';
+import { runCommand, runCommandSafe, runCommandWithOutput } from '../utils/exec';
 import { BrewState, BrewPackageDiff, BrewCaskDiff, ApplyResult } from '../types';
 
 export class BrewManager {
+  private verbose: boolean = false;
+
+  setVerbose(verbose: boolean): void {
+    this.verbose = verbose;
+  }
   async getCurrentState(): Promise<BrewState> {
     const packages = new Map<string, string>();
     const casks = new Map<string, string>();
@@ -40,47 +45,47 @@ export class BrewManager {
   async applyPackageDiff(diff: BrewPackageDiff): Promise<ApplyResult> {
     switch (diff.action) {
       case 'add':
-        try {
-          await runCommand(`brew install ${diff.name}`);
+        const installResult = await runCommandWithOutput(`brew install ${diff.name}`, this.verbose);
+        if (installResult.success) {
           return {
             success: true,
             message: `Installed package: ${diff.name}`
           };
-        } catch (error: any) {
+        } else {
           return {
             success: false,
             message: `Failed to install package: ${diff.name}`,
-            error: error.message
+            error: installResult.stderr
           };
         }
 
       case 'remove':
-        try {
-          await runCommand(`brew uninstall ${diff.name}`);
+        const uninstallResult = await runCommandWithOutput(`brew uninstall ${diff.name}`, this.verbose);
+        if (uninstallResult.success) {
           return {
             success: true,
             message: `Uninstalled package: ${diff.name}`
           };
-        } catch (error: any) {
+        } else {
           return {
             success: false,
             message: `Failed to uninstall package: ${diff.name}`,
-            error: error.message
+            error: uninstallResult.stderr
           };
         }
 
       case 'update':
-        try {
-          await runCommand(`brew upgrade ${diff.name}`);
+        const upgradeResult = await runCommandWithOutput(`brew upgrade ${diff.name}`, this.verbose);
+        if (upgradeResult.success) {
           return {
             success: true,
             message: `Updated package: ${diff.name}`
           };
-        } catch (error: any) {
+        } else {
           return {
             success: false,
             message: `Failed to update package: ${diff.name}`,
-            error: error.message
+            error: upgradeResult.stderr
           };
         }
 
@@ -95,47 +100,47 @@ export class BrewManager {
   async applyCaskDiff(diff: BrewCaskDiff): Promise<ApplyResult> {
     switch (diff.action) {
       case 'add':
-        try {
-          await runCommand(`brew install --cask ${diff.name}`);
+        const installResult = await runCommandWithOutput(`brew install --cask ${diff.name}`, this.verbose);
+        if (installResult.success) {
           return {
             success: true,
             message: `Installed cask: ${diff.name}`
           };
-        } catch (error: any) {
+        } else {
           return {
             success: false,
             message: `Failed to install cask: ${diff.name}`,
-            error: error.message
+            error: installResult.stderr
           };
         }
 
       case 'remove':
-        try {
-          await runCommand(`brew uninstall --cask ${diff.name}`);
+        const uninstallResult = await runCommandWithOutput(`brew uninstall --cask ${diff.name}`, this.verbose);
+        if (uninstallResult.success) {
           return {
             success: true,
             message: `Uninstalled cask: ${diff.name}`
           };
-        } catch (error: any) {
+        } else {
           return {
             success: false,
             message: `Failed to uninstall cask: ${diff.name}`,
-            error: error.message
+            error: uninstallResult.stderr
           };
         }
 
       case 'update':
-        try {
-          await runCommand(`brew upgrade --cask ${diff.name}`);
+        const upgradeResult = await runCommandWithOutput(`brew upgrade --cask ${diff.name}`, this.verbose);
+        if (upgradeResult.success) {
           return {
             success: true,
             message: `Updated cask: ${diff.name}`
           };
-        } catch (error: any) {
+        } else {
           return {
             success: false,
             message: `Failed to update cask: ${diff.name}`,
-            error: error.message
+            error: upgradeResult.stderr
           };
         }
 

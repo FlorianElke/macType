@@ -13,6 +13,7 @@ A TypeScript framework for managing Homebrew packages and macOS settings with de
 - **Dry Run Mode**: Test your configuration without making any changes
 - **Strict Mode**: Optionally enforce exact package lists (remove unlisted packages)
 - **Homebrew Integration**: Manage both packages and casks
+- **Mac App Store Integration**: Install and manage App Store applications using `mas` CLI
 - **macOS Settings**: Configure system preferences via the `defaults` command
 - **Global Binary**: Install once, use anywhere with `mactype` command
 
@@ -106,6 +107,11 @@ Strict mode (removes packages not in config):
 mactype apply --strict
 ```
 
+Search for Mac App Store applications:
+```bash
+mactype search "Xcode"
+```
+
 Show help:
 ```bash
 mactype --help
@@ -124,6 +130,12 @@ mactype --help
   - `-d, --dry-run` - Show what would be changed without applying
   - `-v, --verbose` - Show detailed output including error messages
   - `-s, --strict` - Remove packages not listed in config (default: false)
+
+**`mactype search <query>`**
+- Search for Mac App Store applications
+- Returns app ID, name, version, and ready-to-use config snippet
+- Example: `mactype search "Xcode"`
+- Requires `mas` CLI (automatically installed with `./init.sh`)
 
 ### Configuration File Format
 
@@ -148,10 +160,19 @@ const config: Configuration = {
       'git',
       'node',
       'wget',
+      'mas', // Required for App Store app management
     ],
     casks: [
       'visual-studio-code',
       'google-chrome',
+    ],
+  },
+
+  // Mac App Store applications
+  appstore: {
+    apps: [
+      { id: 497799835, name: 'Xcode' },
+      { id: 1295203466, name: 'Microsoft Remote Desktop' },
     ],
   },
 
@@ -240,6 +261,62 @@ When you run `mactype apply`:
 3. Symlinks are created pointing to the generated files
 4. Existing files are backed up if `backup: true`
 
+### Managing Mac App Store Applications
+
+macType can manage App Store applications using the `mas` CLI tool.
+
+**Prerequisites**:
+```bash
+brew install mas
+```
+
+**Finding App IDs**:
+
+1. Using mactype CLI (recommended):
+```bash
+mactype search "Xcode"
+```
+Output:
+```
+📱 Searching App Store...
+
+Found 1 app(s):
+
+Xcode
+  ID: 497799835
+  Version: 14.2
+  Config: { id: 497799835, name: 'Xcode' }
+
+💡 Copy the config line to your appstore.apps array
+```
+
+2. Using mas CLI directly:
+```bash
+mas search "Xcode"
+# Output: 497799835  Xcode (14.2)
+```
+
+3. From App Store URL:
+   - Visit the app on https://apps.apple.com
+   - The ID is in the URL: `https://apps.apple.com/app/id497799835`
+
+**Configuration Example**:
+```typescript
+appstore: {
+  apps: [
+    { id: 497799835, name: 'Xcode' },
+    { id: 1295203466, name: 'Microsoft Remote Desktop' },
+    { id: 1569813296, name: '1Password for Safari' },
+  ]
+}
+```
+
+**Important Notes**:
+- You must be signed into the Mac App Store
+- The `mas` CLI cannot uninstall apps (macOS limitation)
+- In strict mode, unlisted apps will be flagged but not removed
+- Some apps may require manual first-time setup
+
 ### macOS Settings Types
 
 When configuring macOS settings, you can specify the type:
@@ -273,6 +350,42 @@ This is ideal when you want macType to ensure certain packages are present witho
 When using the `--strict` flag, macType enforces an exact match - any packages or casks not in your config will be removed.
 
 This is useful for ensuring a completely reproducible environment or for CI/CD pipelines.
+
+### Installation Output
+
+macType shows **live installation progress** during package installations:
+
+**Normal Mode** (default):
+- Shows only important messages (Installing, Downloading, Installed, Errors)
+- Keeps output clean and readable
+- Perfect for daily use
+
+```bash
+mactype apply
+```
+
+Output example:
+```
+🚀 Applying changes...
+
+  ✓ Installed package: wget
+   ==> Downloading wget...
+   ==> Pouring wget--1.21.3.arm64_ventura.bottle.tar.gz
+   ==> Installed wget
+
+  ✓ Installed cask: google-chrome
+   ==> Downloading Google Chrome...
+   ==> Installing Google Chrome
+```
+
+**Verbose Mode**:
+- Shows complete installation output from Homebrew/mas
+- Useful for debugging issues
+- Shows all details
+
+```bash
+mactype apply --verbose
+```
 
 ### Example Output
 

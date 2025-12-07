@@ -41,6 +41,17 @@ fi
 
 echo ""
 
+# Install mas CLI for App Store management
+if ! command -v mas &> /dev/null; then
+    echo -e "${YELLOW}mas CLI not found. Installing mas for App Store management...${NC}"
+    brew install mas
+    echo -e "${GREEN}✓ mas CLI installed successfully${NC}"
+else
+    echo -e "${GREEN}✓ mas CLI is already installed${NC}"
+fi
+
+echo ""
+
 # Check and install nvm
 if [ ! -d "$HOME/.nvm" ]; then
     echo -e "${YELLOW}nvm not found. Installing nvm...${NC}"

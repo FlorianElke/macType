@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { dirname } from 'path';
 import chalk from 'chalk';
 import { BrewManager } from './managers/brew';
+import { AppStoreManager } from './managers/appstore';
 import { MacOSManager } from './managers/macos';
 import { FileManager } from './managers/files';
 import { DiffEngine } from './diff';
@@ -15,12 +16,14 @@ export interface MacTypeOptions {
 
 export class MacType {
   private brewManager: BrewManager;
+  private appstoreManager: AppStoreManager;
   private macosManager: MacOSManager;
   private fileManager?: FileManager;
   private diffEngine: DiffEngine;
 
   constructor() {
     this.brewManager = new BrewManager();
+    this.appstoreManager = new AppStoreManager();
     this.macosManager = new MacOSManager();
     this.diffEngine = new DiffEngine();
   }
@@ -64,17 +67,23 @@ export class MacType {
     const config = await this.loadConfig(configPath);
     console.log(chalk.blue('📋 Config loaded from:'), chalk.dim(configPath));
 
+    // Set verbose mode for managers
+    this.brewManager.setVerbose(options.verbose || false);
+    this.appstoreManager.setVerbose(options.verbose || false);
+
     // Initialize FileManager with config directory
     const configDir = dirname(configPath);
     this.fileManager = new FileManager(configDir);
 
     console.log(chalk.blue('\n🔍 Reading current system state...'));
     const brewState = await this.brewManager.getCurrentState();
+    const appstoreState = await this.appstoreManager.getCurrentState();
     const macosState = await this.macosManager.getCurrentState(config.macos?.settings || []);
     const fileState = await this.fileManager.getCurrentState(config.files?.files || []);
 
     const currentState = {
       brew: brewState,
+      appstore: appstoreState,
       macos: macosState,
       files: fileState
     };
@@ -118,6 +127,16 @@ export class MacType {
       console.log(chalk.bold.magenta('🍺 Homebrew Casks:'));
       for (const cask of caskChanges) {
         const line = this.formatDiffLine(cask.action, cask.name, cask.currentVersion);
+        console.log(`  ${line}`);
+      }
+      console.log();
+    }
+
+    const appChanges = diff.appstore.apps.filter(d => d.action !== 'none');
+    if (appChanges.length > 0) {
+      console.log(chalk.bold.magenta('📱 App Store Applications:'));
+      for (const app of appChanges) {
+        const line = this.formatDiffLine(app.action, app.name);
         console.log(`  ${line}`);
       }
       console.log();
@@ -198,6 +217,18 @@ export class MacType {
     for (const caskDiff of diff.brew.casks) {
       if (caskDiff.action !== 'none') {
         const result = await this.brewManager.applyCaskDiff(caskDiff);
+        results.push(result);
+        this.printResult(result, options.verbose);
+      }
+    }
+
+    for (const appDiff of diff.appstore.apps) {
+      if (appDiff.action === 'add') {
+        const result = await this.appstoreManager.install({ id: appDiff.id, name: appDiff.name });
+        results.push(result);
+        this.printResult(result, options.verbose);
+      } else if (appDiff.action === 'remove') {
+        const result = await this.appstoreManager.uninstall({ id: appDiff.id, name: appDiff.name });
         results.push(result);
         this.printResult(result, options.verbose);
       }

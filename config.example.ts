@@ -1,4 +1,4 @@
-import { Configuration } from 'mactype';
+import { Configuration } from './src/types';
 
 /**
  * macType Configuration
@@ -22,6 +22,7 @@ const config: Configuration = {
       'git',
       'node',
       'wget',
+      'mas', // Required for App Store app management
       // Add more packages here
     ],
 
@@ -34,6 +35,23 @@ const config: Configuration = {
       // 'google-chrome',
       // 'iterm2',
       // Add more casks here
+    ],
+  },
+
+  /**
+   * Mac App Store applications
+   * Requires 'mas' CLI to be installed (brew install mas)
+   *
+   * To find app IDs:
+   *   mas search "App Name"
+   * Or search on https://apps.apple.com and check the URL
+   */
+  appstore: {
+    apps: [
+      // { id: 497799835, name: 'Xcode' },
+      // { id: 1295203466, name: 'Microsoft Remote Desktop' },
+      // { id: 1569813296, name: '1Password for Safari' },
+      // Add more App Store apps here
     ],
   },
 

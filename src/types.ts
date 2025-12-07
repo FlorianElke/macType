@@ -15,6 +15,25 @@ export interface BrewCask {
 }
 
 /**
+ * Mac App Store application
+ *
+ * To find the app ID, search on https://apps.apple.com or use:
+ * mas search "App Name"
+ *
+ * @example
+ * {
+ *   id: 497799835,
+ *   name: "Xcode"
+ * }
+ */
+export interface AppStoreApp {
+  /** The App Store ID (numeric) */
+  id: number;
+  /** The app name (for display purposes) */
+  name: string;
+}
+
+/**
  * Type of value for macOS defaults system
  */
 export type MacOSValueType = 'string' | 'int' | 'float' | 'bool' | 'array' | 'dict';
@@ -48,6 +67,25 @@ export interface BrewConfiguration {
   packages?: string[];
   /** List of Homebrew casks to install */
   casks?: string[];
+}
+
+/**
+ * Mac App Store configuration
+ *
+ * Requires `mas` (Mac App Store CLI) to be installed.
+ * Install with: brew install mas
+ *
+ * @example
+ * {
+ *   apps: [
+ *     { id: 497799835, name: "Xcode" },
+ *     { id: 1295203466, name: "Microsoft Remote Desktop" }
+ *   ]
+ * }
+ */
+export interface AppStoreConfiguration {
+  /** List of Mac App Store applications to install */
+  apps?: AppStoreApp[];
 }
 
 /**
@@ -96,6 +134,12 @@ export interface FilesConfiguration {
  *     packages: ['git', 'node'],
  *     casks: ['visual-studio-code']
  *   },
+ *   appstore: {
+ *     apps: [
+ *       { id: 497799835, name: 'Xcode' },
+ *       { id: 1295203466, name: 'Microsoft Remote Desktop' }
+ *     ]
+ *   },
  *   macos: {
  *     settings: [
  *       {
@@ -120,6 +164,8 @@ export interface FilesConfiguration {
 export interface Configuration {
   /** Homebrew packages and casks configuration */
   brew?: BrewConfiguration;
+  /** Mac App Store applications configuration */
+  appstore?: AppStoreConfiguration;
   /** macOS system settings configuration */
   macos?: MacOSConfiguration;
   /** Config files to generate and symlink */
@@ -131,12 +177,17 @@ export interface BrewState {
   casks: Map<string, string>;
 }
 
+export interface AppStoreState {
+  apps: Map<number, string>; // id -> name
+}
+
 export interface MacOSState {
   settings: Map<string, any>;
 }
 
 export interface SystemState {
   brew: BrewState;
+  appstore: AppStoreState;
   macos: MacOSState;
   files: FileState;
 }
@@ -155,6 +206,12 @@ export interface BrewCaskDiff {
   name: string;
   currentVersion?: string;
   desiredVersion?: string;
+}
+
+export interface AppStoreAppDiff {
+  action: DiffAction;
+  id: number;
+  name: string;
 }
 
 export interface MacOSSettingDiff {
@@ -182,6 +239,9 @@ export interface Diff {
   brew: {
     packages: BrewPackageDiff[];
     casks: BrewCaskDiff[];
+  };
+  appstore: {
+    apps: AppStoreAppDiff[];
   };
   macos: {
     settings: MacOSSettingDiff[];
