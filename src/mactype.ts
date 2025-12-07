@@ -242,6 +242,9 @@ export class MacType {
       }
     }
 
+    // Restart affected processes after all macOS settings have been applied
+    await this.macosManager.restartProcesses();
+
     if (this.fileManager) {
       for (const fileDiff of diff.files.files) {
         if (fileDiff.action !== 'none') {
