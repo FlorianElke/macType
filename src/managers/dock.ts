@@ -1,18 +1,23 @@
 import { runCommand, runCommandSafe } from '../utils/exec';
-import { ApplyResult } from '../types';
-
-export interface DockApp {
-  /** App name or path (e.g., 'Safari' or '/Applications/Safari.app') */
-  name: string;
-  /** Position in Dock (optional, 1-based index) */
-  position?: number;
-}
+import { ApplyResult, DockApp } from '../types';
 
 export class DockManager {
+  /**
+   * Normalize DockApp to object format
+   */
+  private normalizeDockApp(app: DockApp): { name: string; position?: number } {
+    if (typeof app === 'string') {
+      return { name: app };
+    }
+    return app;
+  }
+
   /**
    * Add an app to the Dock
    */
   async addApp(app: DockApp): Promise<ApplyResult> {
+    const normalizedApp = this.normalizeDockApp(app);
+
     try {
       // Check if dockutil is installed
       const { stdout: dockutilPath } = await runCommandSafe('which dockutil');
@@ -24,25 +29,25 @@ export class DockManager {
         };
       }
 
-      const appPath = app.name.endsWith('.app')
-        ? app.name
-        : `/Applications/${app.name}.app`;
+      const appPath = normalizedApp.name.endsWith('.app')
+        ? normalizedApp.name
+        : `/Applications/${normalizedApp.name}.app`;
 
       let command = `dockutil --add "${appPath}"`;
-      if (app.position) {
-        command += ` --position ${app.position}`;
+      if (normalizedApp.position) {
+        command += ` --position ${normalizedApp.position}`;
       }
 
       await runCommand(command);
 
       return {
         success: true,
-        message: `Added ${app.name} to Dock`
+        message: `Added ${normalizedApp.name} to Dock`
       };
     } catch (error: any) {
       return {
         success: false,
-        message: `Failed to add ${app.name} to Dock`,
+        message: `Failed to add ${normalizedApp.name} to Dock`,
         error: error.message
       };
     }
@@ -134,11 +139,12 @@ export class DockManager {
       // Determine desired app names
       const desiredAppNames = new Set(
         apps.map(app => {
+          const normalizedApp = this.normalizeDockApp(app);
           // Extract app name from path if needed
-          if (app.name.endsWith('.app')) {
-            return app.name.split('/').pop()!.replace('.app', '');
+          if (normalizedApp.name.endsWith('.app')) {
+            return normalizedApp.name.split('/').pop()!.replace('.app', '');
           }
-          return app.name;
+          return normalizedApp.name;
         })
       );
 
@@ -163,19 +169,20 @@ export class DockManager {
 
       // Add desired apps that are not currently in Dock
       for (const app of apps) {
-        const appName = app.name.endsWith('.app')
-          ? app.name.split('/').pop()!.replace('.app', '')
-          : app.name;
+        const normalizedApp = this.normalizeDockApp(app);
+        const appName = normalizedApp.name.endsWith('.app')
+          ? normalizedApp.name.split('/').pop()!.replace('.app', '')
+          : normalizedApp.name;
 
         if (!currentApps.includes(appName)) {
-          const appPath = app.name.endsWith('.app')
-            ? app.name
-            : `/Applications/${app.name}.app`;
+          const appPath = normalizedApp.name.endsWith('.app')
+            ? normalizedApp.name
+            : `/Applications/${normalizedApp.name}.app`;
 
           try {
             let command = `dockutil --add "${appPath}" --no-restart`;
-            if (app.position) {
-              command += ` --position ${app.position}`;
+            if (normalizedApp.position) {
+              command += ` --position ${normalizedApp.position}`;
             }
             await runCommand(command);
             results.push({

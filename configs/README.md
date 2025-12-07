@@ -47,9 +47,7 @@ const gitconfig = `
 export default gitconfig;
 ```
       backup: true  // Creates a backup of existing file
-    }
-  ]
-}
+
 ```
 
 ## Advantages

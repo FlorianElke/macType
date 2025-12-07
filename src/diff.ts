@@ -44,7 +44,7 @@ export class DiffEngine {
     );
 
     const fileDiffs = this.diffFiles(
-      config.files?.files || [],
+      config.files || [],
       currentState.files?.symlinks || new Map(),
       generatedDir
     );

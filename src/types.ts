@@ -102,13 +102,14 @@ export interface MacOSConfiguration {
 
 /**
  * Dock app configuration
+ * Can be a simple string or an object with position
  */
-export interface DockApp {
+export type DockApp = string | {
   /** App name or path (e.g., 'Safari' or '/Applications/Safari.app') */
   name: string;
   /** Position in Dock (optional, 1-based index) */
   position?: number;
-}
+};
 
 /**
  * Config file to be generated and symlinked
@@ -148,11 +149,9 @@ export interface GitSetting {
 
 /**
  * Files configuration
+ * Can be an array of ConfigFile objects directly
  */
-export interface FilesConfiguration {
-  /** List of config files to generate and symlink */
-  files?: ConfigFile[];
-}
+export type FilesConfiguration = ConfigFile[];
 
 /**
  * Git configuration

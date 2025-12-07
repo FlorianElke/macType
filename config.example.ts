@@ -99,37 +99,78 @@ const config: Configuration = {
      * Requires dockutil: brew install dockutil
      * 
      * Apps will be set to exactly this list (removes apps not in the list)
+     * Can be simple strings or objects with position
      */
     dockApps: [
-      // { name: 'Safari' },
-      // { name: 'Mail' },
-      // { name: 'Calendar' },
-      // { name: 'Messages' },
+      // Simple strings:
+      // 'Safari',
+      // 'Mail',
+      // 'Calendar',
+      // 'Messages',
+
+      // With position (1-based index):
       // { name: 'Visual Studio Code', position: 1 },
-      // { name: '/Applications/Google Chrome.app' },  // Full path also works
+
+      // Full path also works:
+      // '/Applications/Google Chrome.app',
     ],
-    // dockSetting('autohide-delay', 0),
-    // dockSetting('autohide-time-modifier', 0.5),
-    /**
-     * Config files to manage
-     *
-     * Files can be:
-     * - Plain text files (just copied and symlinked)
-     * - TypeScript files (.ts) that export content (compiled then symlinked)
-     *
-     * Examples:
-     *   Plain file: { source: './configs/zshrc', target: '~/.zshrc' }
-     *   TS file:    { source: './configs/custom.ts', target: '~/.custom' }
-     */
-    files: {
-      files: [
-        // Example: Symlink zshrc from configs folder
-        // { source: './configs/zshrc', target: '~/.zshrc', backup: true },
+  },
 
-        // Example: TypeScript template (exports string)
-        // { source: './configs/gitconfig.ts', target: '~/.gitconfig' },
-      ],
-    },
-  };
+  /**
+   * Git Configuration
+   * Configure global git settings
+   * 
+   * Type-safe helpers are available:
+   * - userSetting() - User settings (name, email, etc.)
+   * - coreSetting() - Core settings (editor, autocrlf, etc.)
+   * - commitSetting() - Commit settings (gpgSign, template, etc.)
+   * - pushSetting() - Push settings (default, autoSetupRemote, etc.)
+   * - pullSetting() - Pull settings (rebase, ff, etc.)
+   * - initSetting() - Init settings (defaultBranch, etc.)
+   * - aliasSetting() - Git aliases
+   * 
+   * Or use raw format:
+   * { scope: 'global', key: 'user.name', value: 'Your Name' }
+   */
+  git: {
+    settings: [
+      // User configuration
+      // { scope: 'global', key: 'user.name', value: 'Your Name' },
+      // { scope: 'global', key: 'user.email', value: 'your.email@example.com' },
 
-  export default config;
+      // Core settings
+      // { scope: 'global', key: 'core.editor', value: 'code --wait' },
+      // { scope: 'global', key: 'core.autocrlf', value: 'input' },
+
+      // Aliases
+      // { scope: 'global', key: 'alias.co', value: 'checkout' },
+      // { scope: 'global', key: 'alias.br', value: 'branch' },
+      // { scope: 'global', key: 'alias.ci', value: 'commit' },
+      // { scope: 'global', key: 'alias.st', value: 'status' },
+
+      // Modern Git settings
+      // { scope: 'global', key: 'init.defaultBranch', value: 'main' },
+      // { scope: 'global', key: 'pull.rebase', value: 'true' },
+      // { scope: 'global', key: 'push.autoSetupRemote', value: 'true' },
+    ],
+  },
+
+  /**
+   * Config files to manage
+   *
+   * Files can be:
+   * - Plain text files (just copied and symlinked)
+   * - TypeScript files (.ts) that export content (compiled then symlinked)
+   *
+   * Examples:
+   *   Plain file: { source: './configs/zshrc', target: '~/.zshrc' }
+   *   TS file:    { source: './configs/custom.ts', target: '~/.custom' }
+   */
+  files: [
+    // Example: Symlink zshrc from configs folder
+    // { source: './configs/zshrc', target: '~/.zshrc', backup: true },
+
+    // Example: TypeScript template (exports string)
+    // { source: './configs/gitconfig.ts', target: '~/.gitconfig' },
+  ],
+};

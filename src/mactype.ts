@@ -138,7 +138,7 @@ export class MacType {
       previousState.macos?.settings || []
     );
     const gitState = await this.gitManager.getCurrentState(config.git?.settings || []);
-    const fileState = await this.fileManager.getCurrentState(config.files?.files || []);
+    const fileState = await this.fileManager.getCurrentState(config.files || []);
     const wallpaperState = this.wallpaperManager.getCurrentState();
 
     const currentState = {
@@ -239,8 +239,9 @@ export class MacType {
     if (config.macos?.dockApps && config.macos.dockApps.length > 0) {
       console.log(chalk.bold.magenta('🎯 Dock Apps:'));
       for (const app of config.macos.dockApps) {
-        const position = app.position ? chalk.dim(` [position ${app.position}]`) : '';
-        console.log(`  ${chalk.green('+')} ${chalk.cyan(app.name)}${position}`);
+        const name = typeof app === 'string' ? app : app.name;
+        const position = typeof app === 'object' && app.position ? chalk.dim(` [position ${app.position}]`) : '';
+        console.log(`  ${chalk.green('+')} ${chalk.cyan(name)}${position}`);
       }
       console.log();
     }
