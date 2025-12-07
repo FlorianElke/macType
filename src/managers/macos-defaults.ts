@@ -188,7 +188,7 @@ export interface MouseSettings {
 
 export interface TrackpadSettings {
   /** Enable tap to click */
-  TapToClick?: boolean;
+  Clicking?: boolean;
 
   /** Click weight/threshold: 0 (light), 1 (medium), 2 (firm) */
   FirstClickThreshold?: 0 | 1 | 2;

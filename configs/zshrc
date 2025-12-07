@@ -1,5 +1,4 @@
-# macType Generated .zshrc
-# This file is managed by macType - changes will be overwritten
+
 
 # Enable colors
 autoload -U colors && colors
@@ -32,3 +31,10 @@ fi
 
 # Custom configuration
 # Add your custom shell configuration here
+
+export NVM_DIR=/Users/floran/.nvm
+[ -s /Users/floran/.nvm/nvm.sh ] && \. /Users/floran/.nvm/nvm.sh  # This loads nvm
+[ -s /Users/floran/.nvm/bash_completion ] && \. /Users/floran/.nvm/bash_completion  # This loads nvm bash_completion
+
+
+

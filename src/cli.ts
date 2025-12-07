@@ -17,7 +17,7 @@ program
 program
   .command('apply')
   .description('Apply configuration from a file')
-  .argument('[config]', 'Path to configuration file (defaults to ~/.config/macType/config.ts)')
+  .argument('[config]', 'Path to configuration file (defaults to ~/.local/macType/config.ts)')
   .option('-d, --dry-run', 'Show what would be changed without applying')
   .option('-v, --verbose', 'Verbose output')
   .option('-s, --strict', 'Remove packages not listed in config (default: false)')
@@ -31,9 +31,9 @@ program
         // User provided a config path
         absolutePath = resolve(configPath);
       } else {
-        // Try to find default config file
-        const configDir = resolve(process.env.HOME || '~', '.config/macType');
-        const tsConfig = resolve(configDir, 'config.ts');
+        // Try to find default config file in repo directory
+        const repoDir = resolve(process.env.HOME || '~', '.local/macType');
+        const tsConfig = resolve(repoDir, 'config.ts');
 
         if (existsSync(tsConfig)) {
           absolutePath = tsConfig;
@@ -58,7 +58,7 @@ program
 program
   .command('diff')
   .description('Show what changes would be applied without executing them')
-  .argument('[config]', 'Path to configuration file (defaults to ~/.config/macType/config.ts)')
+  .argument('[config]', 'Path to configuration file (defaults to ~/.local/macType/config.ts)')
   .option('-s, --strict', 'Show removals for packages not listed in config')
   .action(async (configPath: string, options) => {
     try {
@@ -70,9 +70,9 @@ program
         // User provided a config path
         absolutePath = resolve(configPath);
       } else {
-        // Try to find default config file
-        const configDir = resolve(process.env.HOME || '~', '.config/macType');
-        const tsConfig = resolve(configDir, 'config.ts');
+        // Try to find default config file in repo directory
+        const repoDir = resolve(process.env.HOME || '~', '.local/macType');
+        const tsConfig = resolve(repoDir, 'config.ts');
 
         if (existsSync(tsConfig)) {
           absolutePath = tsConfig;

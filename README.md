@@ -14,7 +14,7 @@ Then edit your config and apply:
 
 ```bash
 # Edit your configuration
-vim ~/.config/macType/config.ts
+vim ~/.local/macType/config.ts
 
 # Preview changes
 mactype diff
@@ -57,7 +57,7 @@ This will:
 - Install nvm and Node.js 22
 - Install npm dependencies and build the project
 - Link the `mactype` command globally
-- Create the config directory at `~/.config/macType`
+- Create config.ts in the macType directory
 - Copy example TypeScript config and dotfile templates
 - Set up TypeScript support with IntelliSense
 
@@ -197,10 +197,10 @@ mactype --help
 
 macType uses TypeScript for configuration, providing **IntelliSense and type checking**.
 
-By default, macType looks for your configuration at `~/.config/macType/config.ts`.
+By default, macType looks for your configuration at `~/.local/macType/config.ts`.
 
 **TypeScript Support**: After running `./init.sh`, TypeScript IntelliSense is automatically available in your config files. The initialization script:
-- Creates a `package.json` in `~/.config/macType/`
+- Creates a `config.ts` in `~/.local/macType/`
 - Links the `mactype` package for type definitions
 - Sets up `tsconfig.json` for optimal TypeScript support
 
@@ -561,7 +561,7 @@ import { MacType } from './mactype';
 
 const mactype = new MacType();
 
-await mactype.run('~/.config/macType/config.ts', {
+await mactype.run('~/.local/macType/config.ts', {
   dryRun: false,
   verbose: true,
   strict: false

@@ -147,74 +147,20 @@ fi
 echo ""
 
 # Create config directory
-echo -e "${BLUE}Setting up config directory...${NC}"
-CONFIG_DIR="$HOME/.config/macType"
-if [ ! -d "$CONFIG_DIR" ]; then
-    mkdir -p "$CONFIG_DIR"
-    echo -e "${GREEN}✓ Created config directory at $CONFIG_DIR${NC}"
-else
-    echo -e "${GREEN}✓ Config directory already exists${NC}"
-fi
+echo -e "${BLUE}Setting up config file in repo...${NC}"
 
 # Determine script directory (works whether script is in repo or installed)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Copy example config if it doesn't exist
-if [ ! -f "$CONFIG_DIR/config.ts" ]; then
+if [ ! -f "$SCRIPT_DIR/config.ts" ]; then
     if [ -f "$SCRIPT_DIR/config.example.ts" ]; then
-        cp "$SCRIPT_DIR/config.example.ts" "$CONFIG_DIR/config.ts"
-        echo -e "${GREEN}✓ Created TypeScript config file at $CONFIG_DIR/config.ts${NC}"
-        echo -e "${YELLOW}  Please edit $CONFIG_DIR/config.ts with your desired configuration${NC}"
+        cp "$SCRIPT_DIR/config.example.ts" "$SCRIPT_DIR/config.ts"
+        echo -e "${GREEN}✓ Created TypeScript config file at $SCRIPT_DIR/config.ts${NC}"
+        echo -e "${YELLOW}  Please edit $SCRIPT_DIR/config.ts with your desired configuration${NC}"
     fi
 else
     echo -e "${GREEN}✓ Config file already exists${NC}"
-fi
-
-# Copy configs directory if it doesn't exist
-if [ ! -d "$CONFIG_DIR/configs" ]; then
-    if [ -d "$SCRIPT_DIR/configs" ]; then
-        cp -r "$SCRIPT_DIR/configs" "$CONFIG_DIR/"
-        echo -e "${GREEN}✓ Created configs directory at $CONFIG_DIR/configs${NC}"
-        echo -e "${YELLOW}  Add your dotfile configs in $CONFIG_DIR/configs/${NC}"
-    fi
-else
-    echo -e "${GREEN}✓ Configs directory already exists${NC}"
-fi
-
-# Create package.json for npm link support
-if [ ! -f "$CONFIG_DIR/package.json" ]; then
-    cat > "$CONFIG_DIR/package.json" << 'EOF'
-{
-  "name": "mactype-config",
-  "version": "1.0.0",
-  "private": true
-}
-EOF
-    echo -e "${GREEN}✓ Created package.json for npm dependencies${NC}"
-else
-    echo -e "${GREEN}✓ package.json already exists${NC}"
-fi
-
-# Create tsconfig.json for TypeScript support
-if [ ! -f "$CONFIG_DIR/tsconfig.json" ]; then
-    cat > "$CONFIG_DIR/tsconfig.json" << 'EOF'
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "lib": ["ES2020"],
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
-  }
-}
-EOF
-    echo -e "${GREEN}✓ Created tsconfig.json for TypeScript support${NC}"
-else
-    echo -e "${GREEN}✓ tsconfig.json already exists${NC}"
 fi
 
 echo ""
@@ -240,22 +186,12 @@ npm link
 echo -e "${GREEN}✓ mactype package linked globally${NC}"
 
 echo ""
-
-# Link mactype to config directory for TypeScript IntelliSense
-echo -e "${BLUE}Linking mactype to config directory...${NC}"
-cd "$CONFIG_DIR"
-npm link mactype
-cd - > /dev/null
-echo -e "${GREEN}✓ mactype types are now available in your config${NC}"
-echo -e "${GREEN}  You can now import types from 'mactype' with full IntelliSense!${NC}"
-
-echo ""
 echo -e "${GREEN}================================${NC}"
 echo -e "${GREEN}Initialization complete!${NC}"
 echo -e "${GREEN}================================${NC}"
 echo ""
 echo -e "Next steps:"
-echo -e "1. Edit your config file: ${BLUE}$CONFIG_DIR/config.ts${NC}"
+echo -e "1. Edit your config file: ${BLUE}$SCRIPT_DIR/config.ts${NC}"
 echo -e "   (TypeScript config provides IntelliSense and type checking!)"
 echo -e "2. Run: ${BLUE}npm run dev apply${NC}"
 echo -e "   (or specify a config: ${BLUE}npm run dev apply path/to/config.ts${NC})"
