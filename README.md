@@ -2,6 +2,27 @@
 
 A TypeScript framework for managing Homebrew packages and macOS settings with declarative configuration and idempotent operations.
 
+## Quick Start
+
+Install macType with a single command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/FlorianElke/macType/main/bootstrap.sh | bash
+```
+
+Then edit your config and apply:
+
+```bash
+# Edit your configuration
+vim ~/.config/macType/config.ts
+
+# Preview changes
+mactype diff
+
+# Apply configuration
+mactype apply
+```
+
 ## Features
 
 - **TypeScript Configuration**: Use TypeScript config files with full IntelliSense and type checking
